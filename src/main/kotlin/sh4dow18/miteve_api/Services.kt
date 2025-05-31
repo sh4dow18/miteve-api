@@ -42,6 +42,9 @@ class AbstractGenreService(
 // Spring Abstract Movie Service are declared
 interface MovieService {
     fun findAll(): List<MinimalMovieResponse>
+    fun findAllRecommendationsById(id: Long): List<MinimalMovieResponse>
+    fun findByIdMinimal(id: Long): MinimalMovieResponse
+    fun findById(id: Long): MovieResponse
     fun insert(movieRequest: MovieRequest): MovieResponse
 }
 // Spring Abstract Movie Service
@@ -57,7 +60,27 @@ class AbstractMovieService(
 ): MovieService {
     override fun findAll(): List<MinimalMovieResponse> {
         // Returns all Movies as a Movies Responses List
-        return movieMapper.moviesListToMovieResponsesList(movieRepository.findAll())
+        return movieMapper.moviesListToMinimalMovieResponsesList(movieRepository.findAll())
+    }
+    override fun findAllRecommendationsById(id: Long): List<MinimalMovieResponse> {
+        val movie = movieRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Movie")
+        }
+        val recommendationsList = movieRepository.findByCollectionAndIdNot(movie.collection, movie.id) +
+                movieRepository.findTop10ByGenresListIdAndCollectionNot(movie.genresList.toList()[0].id, movie.collection)
+        return movieMapper.moviesListToMinimalMovieResponsesList(recommendationsList)
+    }
+    override fun findByIdMinimal(id: Long): MinimalMovieResponse {
+        val movie = movieRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Movie")
+        }
+        return movieMapper.movieToMinimalMovieResponse(movie)
+    }
+    override fun findById(id: Long): MovieResponse {
+        val movie = movieRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Movie")
+        }
+        return movieMapper.movieToMovieResponse(movie)
     }
     override fun insert(movieRequest: MovieRequest): MovieResponse {
         // If the Movie Database Id is null, do the following

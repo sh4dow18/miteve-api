@@ -3,6 +3,7 @@ package sh4dow18.miteve_api
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -30,6 +31,15 @@ class MovieRestController(private val movieService: MovieService) {
     @GetMapping
     @ResponseBody
     fun findAll() = movieService.findAll()
+    @GetMapping("recommendations/{id}")
+    @ResponseBody
+    fun findAllRecommendationsById(@PathVariable id: Long) = movieService.findAllRecommendationsById(id)
+    @GetMapping("minimal/{id}")
+    @ResponseBody
+    fun findByIdMinimal(@PathVariable id: Long) = movieService.findByIdMinimal(id)
+    @GetMapping("{id}")
+    @ResponseBody
+    fun findById(@PathVariable id: Long) = movieService.findById(id)
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun insert(@RequestBody movieRequest: MovieRequest): MovieResponse {

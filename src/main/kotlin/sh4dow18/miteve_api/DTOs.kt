@@ -14,6 +14,8 @@ data class MovieRequest(
     var rating: Float,
     var classification: String?,
     var cast: String?,
+    var company: String,
+    var collection: String?,
     var cover: String,
     var background: String,
     var trailer: String,
@@ -30,6 +32,7 @@ data class MovieResponse(
     var id: Long,
     var tmdbId: Long?,
     var title: String,
+    var year: String,
     var tagline: String?,
     var description: String,
     var rating: Float,
@@ -38,7 +41,6 @@ data class MovieResponse(
     var cover: String,
     var background: String,
     var trailer: String,
-    var content: String,
     var genres: String
 )
 

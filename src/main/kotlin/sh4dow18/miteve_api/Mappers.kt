@@ -37,7 +37,10 @@ interface MovieMapper {
     fun movieToMovieResponse(
         movie: Movie
     ): MovieResponse
-    fun moviesListToMovieResponsesList(
+    fun movieToMinimalMovieResponse(
+        movie: Movie
+    ): MinimalMovieResponse
+    fun moviesListToMinimalMovieResponsesList(
         moviesList: List<Movie>
     ): List<MinimalMovieResponse>
 }

@@ -58,6 +58,8 @@ data class Movie(
     var classification: String?,
     @Column(name = "movie_cast")
     var cast: String?,
+    var collection: String?,
+    var company: String,
     var cover: String,
     var background: String,
     var trailer: String,
