@@ -6,7 +6,7 @@ data class GenreRequest(
     var name: String,
 )
 data class MovieRequest(
-    var tmdbId: Long?,
+    var id: Long,
     var title: String,
     var year: String,
     var tagline: String?,
@@ -30,7 +30,6 @@ data class GenreResponse(
 )
 data class MovieResponse(
     var id: Long,
-    var tmdbId: Long?,
     var title: String,
     var year: String,
     var tagline: String?,

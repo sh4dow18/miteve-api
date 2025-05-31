@@ -83,12 +83,9 @@ class AbstractMovieService(
         return movieMapper.movieToMovieResponse(movie)
     }
     override fun insert(movieRequest: MovieRequest): MovieResponse {
-        // If the Movie Database Id is null, do the following
-        if (movieRequest.tmdbId != null) {
-            // Check if the movie already exists with the same TMDB Id
-            if (movieRepository.findByTmdbId(movieRequest.tmdbId!!).orElse(null) != null) {
-                throw ElementAlreadyExists("${movieRequest.tmdbId}", "Movie")
-            }
+        // Check if the movie already exists with the same TMDB Id
+        if (movieRepository.findById(movieRequest.id).orElse(null) != null) {
+            throw ElementAlreadyExists("${movieRequest.id}", "Movie")
         }
         // Check if each genre submitted exists
         val genresList = genreRepository.findAllById(movieRequest.genresList)
