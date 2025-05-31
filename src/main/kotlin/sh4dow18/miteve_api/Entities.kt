@@ -48,9 +48,11 @@ data class Movie(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
-    var tmdbId: Long?,
+    var tmdbId: Long,
     var title: String,
+    var year: String,
     var tagline: String?,
+    @Column(length = 1000)
     var description: String,
     var rating: Float,
     var classification: String?,

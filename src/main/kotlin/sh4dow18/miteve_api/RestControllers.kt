@@ -1,6 +1,7 @@
 package sh4dow18.miteve_api
 // Rest Controllers Requirements
 import org.springframework.http.MediaType
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 // Genre Rest Controller
 @RestController
 @RequestMapping("\${endpoint.genres}")
+@CrossOrigin(origins = ["http://localhost:3001"])
 class GenreRestController(private val genreService: GenreService) {
     @GetMapping
     @ResponseBody
@@ -23,6 +25,7 @@ class GenreRestController(private val genreService: GenreService) {
 // Movie Rest Controller
 @RestController
 @RequestMapping("\${endpoint.movies}")
+@CrossOrigin(origins = ["http://localhost:3001"])
 class MovieRestController(private val movieService: MovieService) {
     @GetMapping
     @ResponseBody

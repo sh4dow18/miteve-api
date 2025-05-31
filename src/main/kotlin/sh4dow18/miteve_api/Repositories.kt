@@ -6,7 +6,9 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 // Genre Repository
 @Repository
-interface GenreRepository: JpaRepository<Genre, Long>
+interface GenreRepository: JpaRepository<Genre, Long> {
+    fun findByNameIgnoreCase(@Param("name") name: String): Optional<Genre>
+}
 // Movie Repository
 @Repository
 interface MovieRepository: JpaRepository<Movie, Long> {

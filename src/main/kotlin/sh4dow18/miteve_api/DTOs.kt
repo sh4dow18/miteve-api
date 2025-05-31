@@ -8,6 +8,7 @@ data class GenreRequest(
 data class MovieRequest(
     var tmdbId: Long?,
     var title: String,
+    var year: String,
     var tagline: String?,
     var description: String,
     var rating: Float,
@@ -39,4 +40,12 @@ data class MovieResponse(
     var trailer: String,
     var content: String,
     var genres: String
+)
+
+// Minimal Responses
+
+data class MinimalMovieResponse(
+    var id: Long,
+    var title: String,
+    var cover: String,
 )

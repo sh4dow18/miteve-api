@@ -28,6 +28,10 @@ class AbstractGenreService(
         return genreMapper.genresListToGenreResponsesList(genreRepository.findAll())
     }
     override fun insert(genreRequest: GenreRequest): GenreResponse {
+        val existingGenre = genreRepository.findByNameIgnoreCase(genreRequest.name).orElse(null)
+        if (existingGenre != null) {
+            throw ElementAlreadyExists(existingGenre.name, "Genre")
+        }
         // Create the new genre
         val newGenre = genreMapper.genreRequestToGenre(genreRequest)
         // Save new Genre and Returns it as Genre Response
@@ -37,7 +41,7 @@ class AbstractGenreService(
 // Movie Service Interface where the functions to be used in
 // Spring Abstract Movie Service are declared
 interface MovieService {
-    fun findAll(): List<MovieResponse>
+    fun findAll(): List<MinimalMovieResponse>
     fun insert(movieRequest: MovieRequest): MovieResponse
 }
 // Spring Abstract Movie Service
@@ -51,7 +55,7 @@ class AbstractMovieService(
     @Autowired
     val genreRepository: GenreRepository,
 ): MovieService {
-    override fun findAll(): List<MovieResponse> {
+    override fun findAll(): List<MinimalMovieResponse> {
         // Returns all Movies as a Movies Responses List
         return movieMapper.moviesListToMovieResponsesList(movieRepository.findAll())
     }
