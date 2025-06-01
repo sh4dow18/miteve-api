@@ -113,7 +113,7 @@ class AbstractMovieService(
     override fun streamMovieHead(id: Long, quality: String?): ResponseEntity<Void> {
         // Define the path to the directory where the movies are stored
         val moviesPath = Paths.get("$videoPath/movies/")
-        val filename = if (quality == "low") "$id-low.mp4" else "$id.webm"
+        val filename = if (quality == "low") "$id-low.webm" else "$id.webm"
         val videoFile = moviesPath.resolve(filename).toFile()
         // If the video file does not exist, return Not Found
         if (!videoFile.exists()) {
@@ -124,11 +124,9 @@ class AbstractMovieService(
     override fun streamMovie(id: Long, rangeHeader: String?, quality: String?, response: HttpServletResponse) {
         try {
             val originalFile = "$id.webm"
-            val originalContentType = "video/webm"
             // Define the path to the directory where the movies are stored
             val moviesPath = Paths.get("$videoPath/movies/")
-            var filename = if (quality == "low") "$id-low.mp4" else originalFile
-            var contentType = if (quality == "low") "video/mp4" else originalContentType
+            var filename = if (quality == "low") "$id-low.webm" else originalFile
             // Get the actual video file based on the id provided
             var videoFile = moviesPath.resolve(filename).toFile()
             // If the video file does not exist, return Not Found
@@ -138,7 +136,6 @@ class AbstractMovieService(
                     return
                 }
                 filename = originalFile
-                contentType = originalContentType
                 videoFile = moviesPath.resolve(filename).toFile()
                 if (!videoFile.exists()) {
                     response.status = HttpServletResponse.SC_NOT_FOUND
@@ -153,7 +150,7 @@ class AbstractMovieService(
                 // If there is no Range header, or it does not start with "bytes=", send the whole file
                 if (rangeHeader == null || !rangeHeader.startsWith("bytes=")) {
                     response.status = HttpServletResponse.SC_OK
-                    response.contentType = contentType
+                    response.contentType = "video/webm"
                     response.setHeader("Content-Length", fileLength.toString())
                     // Stream the entire video file to the response output stream
                     videoFile.inputStream().use { input ->
@@ -180,7 +177,7 @@ class AbstractMovieService(
                     // Calculate how many bytes it will send
                     val contentLength = end - start + 1
                     response.status = HttpServletResponse.SC_PARTIAL_CONTENT
-                    response.contentType = contentType
+                    response.contentType = "video/webm"
                     response.setHeader("Accept-Ranges", "bytes")
                     response.setHeader("Content-Length", contentLength.toString())
                     response.setHeader("Content-Range", "bytes $start-$end/$fileLength")
