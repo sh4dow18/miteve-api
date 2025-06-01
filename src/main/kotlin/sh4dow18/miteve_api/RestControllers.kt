@@ -1,5 +1,7 @@
 package sh4dow18.miteve_api
 // Rest Controllers Requirements
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
@@ -40,6 +42,10 @@ class MovieRestController(private val movieService: MovieService) {
     @GetMapping("{id}")
     @ResponseBody
     fun findById(@PathVariable id: Long) = movieService.findById(id)
+    @GetMapping("stream/{id}")
+    @ResponseBody
+    fun streamMovie(@PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse) =
+        movieService.streamMovie(id, request.getHeader("Range"), response)
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun insert(@RequestBody movieRequest: MovieRequest): MovieResponse {
