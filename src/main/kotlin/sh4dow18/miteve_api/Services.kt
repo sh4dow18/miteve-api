@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse
 import org.apache.catalina.connector.ClientAbortException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import java.io.RandomAccessFile
@@ -53,7 +54,8 @@ interface MovieService {
     fun findByIdMinimal(id: Long): MinimalMovieResponse
     fun findById(id: Long): MovieResponse
     fun insert(movieRequest: MovieRequest): MovieResponse
-    fun streamMovie(id: Long, rangeHeader: String?, response: HttpServletResponse)
+    fun streamMovieHead(id: Long, quality: String?): ResponseEntity<Void>
+    fun streamMovie(id: Long, rangeHeader: String?, quality: String?, response: HttpServletResponse)
 }
 // Spring Abstract Movie Service
 @Service
@@ -108,16 +110,40 @@ class AbstractMovieService(
         // Transforms the New movie to a movie Response and Returns it
         return movieMapper.movieToMovieResponse(movieRepository.save(newMovie))
     }
-    override fun streamMovie(id: Long, rangeHeader: String?, response: HttpServletResponse) {
+    override fun streamMovieHead(id: Long, quality: String?): ResponseEntity<Void> {
+        // Define the path to the directory where the movies are stored
+        val moviesPath = Paths.get("$videoPath/movies/")
+        val filename = if (quality == "low") "$id-low.mp4" else "$id.webm"
+        val videoFile = moviesPath.resolve(filename).toFile()
+        // If the video file does not exist, return Not Found
+        if (!videoFile.exists()) {
+            return ResponseEntity.notFound().build()
+        }
+        return ResponseEntity.ok().build()
+    }
+    override fun streamMovie(id: Long, rangeHeader: String?, quality: String?, response: HttpServletResponse) {
         try {
-            // Define the path to the directory where the videos are stored
-            val videoPath = Paths.get("$videoPath/movies/")
+            val originalFile = "$id.webm"
+            val originalContentType = "video/webm"
+            // Define the path to the directory where the movies are stored
+            val moviesPath = Paths.get("$videoPath/movies/")
+            var filename = if (quality == "low") "$id-low.mp4" else originalFile
+            var contentType = if (quality == "low") "video/mp4" else originalContentType
             // Get the actual video file based on the id provided
-            val videoFile = videoPath.resolve("$id.webm").toFile()
+            var videoFile = moviesPath.resolve(filename).toFile()
             // If the video file does not exist, return Not Found
             if (!videoFile.exists()) {
-                response.status = HttpServletResponse.SC_NOT_FOUND
-                return
+                if (quality != "low") {
+                    response.status = HttpServletResponse.SC_NOT_FOUND
+                    return
+                }
+                filename = originalFile
+                contentType = originalContentType
+                videoFile = moviesPath.resolve(filename).toFile()
+                if (!videoFile.exists()) {
+                    response.status = HttpServletResponse.SC_NOT_FOUND
+                    return
+                }
             }
             // Get the total size of the video file in bytes
             val fileLength = videoFile.length()
@@ -127,7 +153,7 @@ class AbstractMovieService(
                 // If there is no Range header, or it does not start with "bytes=", send the whole file
                 if (rangeHeader == null || !rangeHeader.startsWith("bytes=")) {
                     response.status = HttpServletResponse.SC_OK
-                    response.contentType = "video/webm"
+                    response.contentType = contentType
                     response.setHeader("Content-Length", fileLength.toString())
                     // Stream the entire video file to the response output stream
                     videoFile.inputStream().use { input ->
@@ -154,7 +180,7 @@ class AbstractMovieService(
                     // Calculate how many bytes it will send
                     val contentLength = end - start + 1
                     response.status = HttpServletResponse.SC_PARTIAL_CONTENT
-                    response.contentType = "video/webm"
+                    response.contentType = contentType
                     response.setHeader("Accept-Ranges", "bytes")
                     response.setHeader("Content-Length", contentLength.toString())
                     response.setHeader("Content-Range", "bytes $start-$end/$fileLength")
