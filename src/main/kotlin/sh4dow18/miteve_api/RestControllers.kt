@@ -49,6 +49,9 @@ class MovieRestController(private val movieService: MovieService) {
     @ResponseBody
     fun streamMovie(@PathVariable id: Long, @RequestParam("quality") quality: String?, request: HttpServletRequest, response: HttpServletResponse) =
         movieService.streamMovie(id, request.getHeader("Range"), quality, response)
+    @GetMapping("subtitles/{id}")
+    @ResponseBody
+    fun streamSubtitles(@PathVariable id: Long, response: HttpServletResponse) = movieService.streamSubtitles(id, response)
     @RequestMapping("stream/{id}", method = [RequestMethod.HEAD])
     fun streamMovieHead(@PathVariable id: Long, @RequestParam quality: String?): ResponseEntity<Void> = movieService.streamMovieHead(id, quality)
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])

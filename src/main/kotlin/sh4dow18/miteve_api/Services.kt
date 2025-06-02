@@ -56,6 +56,7 @@ interface MovieService {
     fun insert(movieRequest: MovieRequest): MovieResponse
     fun streamMovieHead(id: Long, quality: String?): ResponseEntity<Void>
     fun streamMovie(id: Long, rangeHeader: String?, quality: String?, response: HttpServletResponse)
+    fun streamSubtitles(id: Long, response: HttpServletResponse)
 }
 // Spring Abstract Movie Service
 @Service
@@ -210,6 +211,56 @@ class AbstractMovieService(
             // If any unexpected error occurs, print stack trace and return Internal Server Error
             e.printStackTrace()
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+        }
+    }
+    override fun streamSubtitles(id: Long, response: HttpServletResponse) {
+        // Define the path to the directory where the movies are stored
+        val moviesPath = Paths.get("$videoPath/movies/")
+        // Get the actual video file based on the id provided
+        val videoFile = moviesPath.resolve("$id.webm").toFile()
+        // If the video file does not exist, return Not Found
+        if (!videoFile.exists()) {
+            response.status = HttpServletResponse.SC_NOT_FOUND
+            return
+        }
+        // Prepare Ffmpeg to get the subtitles from video
+        val pb = ProcessBuilder(
+            "ffmpeg",
+            "-i", videoFile.absolutePath,
+            "-map", "0:s:0",
+            "-f", "webvtt",
+            "-"
+        )
+        var process: Process? = null
+        try {
+            // Execute the command to get subtitles
+            process = pb.start()
+            // Get Subtitles as a variable
+            val processOutput = process.inputStream
+            // Check if the video has subtitles
+            val checkBuffer = ByteArray(1024)
+            val bytesRead = processOutput.read(checkBuffer)
+            if (bytesRead == -1) {
+                response.status = HttpServletResponse.SC_NOT_FOUND
+                process.destroy()
+                return
+            }
+            // Add WebVtt content type
+            response.contentType = "text/vtt"
+            response.outputStream.write(checkBuffer, 0, bytesRead)
+            // Put al WebVtt in HTTP Response
+            val buffer = ByteArray(8192)
+            var len: Int
+            while (processOutput.read(buffer).also { len = it } != -1) {
+                response.outputStream.write(buffer, 0, len)
+            }
+            response.outputStream.flush()
+            process.waitFor()
+
+        } catch (e: Exception) {
+            // If any unexpected error occurs, print stack trace and return Internal Server Error
+            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            process?.destroy()
         }
     }
 }
