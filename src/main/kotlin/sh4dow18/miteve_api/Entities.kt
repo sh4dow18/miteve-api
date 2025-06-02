@@ -46,16 +46,18 @@ data class Genre(
 @Table(name = "movies")
 data class Movie(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
-    var tmdbId: Long?,
     var title: String,
+    var year: String,
     var tagline: String?,
+    @Column(length = 1000)
     var description: String,
     var rating: Float,
     var classification: String?,
     @Column(name = "movie_cast")
     var cast: String?,
+    var collection: String?,
+    var company: String,
     var cover: String,
     var background: String,
     var trailer: String,
