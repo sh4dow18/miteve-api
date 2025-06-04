@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import java.io.RandomAccessFile
 import java.nio.file.Paths
-import kotlin.jvm.optionals.toList
 
 // Genre Service Interface where the functions to be used in
 // Spring Abstract Genre Service are declared
@@ -272,6 +271,7 @@ interface SeriesService {
     fun findAllRecommendationsById(id: Long): List<MinimalSeriesResponse>
     fun findByIdMinimal(id: Long): MinimalSeriesResponse
     fun findById(id: Long): SeriesResponse
+    fun findSeasonByNumber(id: Long, seasonNumber: Int): SeasonResponse
     fun insert(seriesRequest: SeriesRequest): SeriesResponse
     fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse
     fun streamEpisodeHead(id: Long, quality: String?): ResponseEntity<Void>
@@ -321,6 +321,16 @@ class AbstractSeriesService(
             NoSuchElementExists("$id", "Series")
         }
         return seriesMapper.seriesToSeriesResponse(series)
+    }
+    override fun findSeasonByNumber(id: Long, seasonNumber: Int): SeasonResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        val season = series.seasonsList.find { it.seasonNumber == seasonNumber }
+        if (season == null) {
+            throw NoSuchElementExists("$seasonNumber", "Season in Series with id $id")
+        }
+        return seasonMapper.seasonToSeasonResponse(season)
     }
     override fun insert(seriesRequest: SeriesRequest): SeriesResponse {
         // Check if the series already exists with the same TMDB Id

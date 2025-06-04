@@ -75,6 +75,9 @@ class SeriesRestController(private val seriesService: SeriesService) {
     @GetMapping("{id}")
     @ResponseBody
     fun findById(@PathVariable id: Long) = seriesService.findById(id)
+    @GetMapping("{id}/season/{seasonNumber}")
+    @ResponseBody
+    fun findSeasonByNumber(@PathVariable id: Long, @PathVariable seasonNumber: Int) = seriesService.findSeasonByNumber(id, seasonNumber)
     @GetMapping("stream/{id}")
     @ResponseBody
     fun streamEpisode(@PathVariable id: Long, @RequestParam("quality") quality: String?, request: HttpServletRequest, response: HttpServletResponse) =
