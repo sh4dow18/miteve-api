@@ -22,12 +22,7 @@ data class Genre(
     var name: String,
     @ManyToMany(mappedBy = "genresList", fetch = FetchType.LAZY, targetEntity = Movie::class)
     var moviesList: Set<Movie>,
-    @ManyToMany(targetEntity = Series::class)
-    @JoinTable(
-        name = "genre_series",
-        joinColumns = [JoinColumn(name = "genre_id", referencedColumnName = "id")],
-        inverseJoinColumns = [JoinColumn(name = "series_id", referencedColumnName = "id")]
-    )
+    @ManyToMany(mappedBy = "genresList", fetch = FetchType.LAZY, targetEntity = Series::class)
     var seriesList: Set<Series>
 ) {
     override fun equals(other: Any?): Boolean {
@@ -88,21 +83,27 @@ data class Movie(
 @Table(name = "series")
 data class Series(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
-    var tmdbId: Long,
     var title: String,
+    var year: String,
     var tagline: String,
+    @Column(length = 1000)
     var description: String,
     var rating: Int,
     var classification: String,
     @Column(name = "series_cast")
     var cast: String,
+    var originCountry: String,
     var cover: String,
     var background: String,
     var trailer: String,
-    @ManyToMany(mappedBy = "seriesList", fetch = FetchType.LAZY, targetEntity = Genre::class)
-    var genresList: MutableSet<Genre>,
+    @ManyToMany(targetEntity = Genre::class)
+    @JoinTable(
+        name = "series_genre",
+        joinColumns = [JoinColumn(name = "series_id", referencedColumnName = "id")],
+        inverseJoinColumns = [JoinColumn(name = "genre_id", referencedColumnName = "id")]
+    )
+    var genresList: Set<Genre>,
     @OneToMany(mappedBy = "series", targetEntity = Season::class)
     var seasonsList: List<Season>,
     @ManyToMany(mappedBy = "seriesList", fetch = FetchType.LAZY, targetEntity = Profile::class)
@@ -115,7 +116,7 @@ data class Season(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
-    var number: Int,
+    var seasonNumber: Int,
     @ManyToOne
     @JoinColumn(name = "series_id", nullable = false, referencedColumnName = "id")
     var series: Series,
@@ -129,13 +130,13 @@ data class Episode(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
-    var number: Int,
+    var episodeNumber: Int,
+    var title: String,
     var description: String,
-    var beginIntro: Long,
-    var endIntro: Long,
-    var beginCredits: Long,
-    var endCredits: Long,
-    var content: String,
+    var beginIntro: Long?,
+    var endIntro: Long?,
+    var beginCredits: Long?,
+    var endCredits: Long?,
     @ManyToOne
     @JoinColumn(name = "season_id", nullable = false, referencedColumnName = "id")
     var season: Season

@@ -56,5 +56,35 @@ class MovieRestController(private val movieService: MovieService) {
     fun streamMovieHead(@PathVariable id: Long, @RequestParam quality: String?): ResponseEntity<Void> = movieService.streamMovieHead(id, quality)
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
-    fun insert(@RequestBody movieRequest: MovieRequest): MovieResponse = movieService.insert(movieRequest)
+    fun insert(@RequestBody movieRequest: MovieRequest) = movieService.insert(movieRequest)
+}
+// Series Rest Controller
+@RestController
+@RequestMapping("\${endpoint.series}")
+@CrossOrigin(origins = ["http://localhost:3001"])
+class SeriesRestController(private val seriesService: SeriesService) {
+    @GetMapping
+    @ResponseBody
+    fun findAll() = seriesService.findAll()
+    @GetMapping("recommendations/{id}")
+    @ResponseBody
+    fun findAllRecommendationsById(@PathVariable id: Long) = seriesService.findAllRecommendationsById(id)
+    @GetMapping("minimal/{id}")
+    @ResponseBody
+    fun findByIdMinimal(@PathVariable id: Long) = seriesService.findByIdMinimal(id)
+    @GetMapping("{id}")
+    @ResponseBody
+    fun findById(@PathVariable id: Long) = seriesService.findById(id)
+    @GetMapping("stream/{id}")
+    @ResponseBody
+    fun streamEpisode(@PathVariable id: Long, @RequestParam("quality") quality: String?, request: HttpServletRequest, response: HttpServletResponse) =
+        seriesService.streamEpisode(id, request.getHeader("Range"), quality, response)
+    @GetMapping("subtitles/{id}")
+    @ResponseBody
+    fun streamSubtitles(@PathVariable id: Long, response: HttpServletResponse) = seriesService.streamSubtitles(id, response)
+    @RequestMapping("stream/{id}", method = [RequestMethod.HEAD])
+    fun streamEpisodeHead(@PathVariable id: Long, @RequestParam quality: String?): ResponseEntity<Void> = seriesService.streamEpisodeHead(id, quality)
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun insert(@RequestBody seriesRequest: SeriesRequest) = seriesService.insert(seriesRequest)
 }
