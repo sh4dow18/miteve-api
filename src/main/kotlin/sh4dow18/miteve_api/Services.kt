@@ -273,6 +273,7 @@ interface SeriesService {
     fun findByIdMinimal(id: Long): MinimalSeriesResponse
     fun findById(id: Long): SeriesResponse
     fun insert(seriesRequest: SeriesRequest): SeriesResponse
+    fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse
     fun streamEpisodeHead(id: Long, quality: String?): ResponseEntity<Void>
     fun streamEpisode(id: Long, rangeHeader: String?, quality: String?, response: HttpServletResponse)
     fun streamSubtitles(id: Long, response: HttpServletResponse)
@@ -336,6 +337,27 @@ class AbstractSeriesService(
         val newSeries = seriesMapper.seriesRequestToSeries(seriesRequest, genresList.toSet())
         // Transforms the New series to a series Response and Returns it
         return seriesMapper.seriesToSeriesResponse(seriesRepository.save(newSeries))
+    }
+    override fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse {
+        // Check if the series already exists with the same TMDB Id
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        seasonsList.forEach { seasonRequest ->
+            // Check if exists already the season submitted
+            val existingSeason = series.seasonsList.find { it.seasonNumber == seasonRequest.seasonNumber }
+            // If the season exists, set the existing season, if not, create a new one
+            val season = existingSeason ?: seasonRepository.save(seasonMapper.seasonRequestToSeason(seasonRequest, series))
+            seasonRequest.episodesList.forEach { episodeRequest ->
+                // Check if exists already the episode submitted from the season submitted
+                val existingEpisode = season.episodesList.find { it.episodeNumber == episodeRequest.episodeNumber }
+                // If the episode does not exist, create a new one
+                if (existingEpisode == null) {
+                    episodeRepository.save(episodeMapper.episodeRequestToEpisode(episodeRequest, season))
+                }
+            }
+        }
+        return InsertEpisodesResponse(id = series.id, seasonsList = series.seasonsList.map { it.seasonNumber })
     }
     override fun streamEpisodeHead(id: Long, quality: String?): ResponseEntity<Void> {
         // Define the path to the directory where the series are stored

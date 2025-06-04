@@ -33,7 +33,7 @@ interface MovieMapper {
         movieRequest: MovieRequest,
         genresList: Set<Genre>
     ): Movie
-    // Transform genres list from list tro string with this format "Element 1, Element 2, etc."
+    // Transform genres list from list to string with this format "Element 1, Element 2, etc."
     @Mapping(target = "genres", expression = "java(movie.getGenresList().stream().map(Genre::getName).collect(java.util.stream.Collectors.joining(\", \")))")
     fun movieToMovieResponse(
         movie: Movie
@@ -50,7 +50,7 @@ interface MovieMapper {
 interface SeriesMapper {
     // Set genres list as the genres list sent
     @Mapping(target = "genresList", expression = "java(genresList)")
-    // Set each set as empty
+    // Set each list and set as empty
     @Mapping(target = "seasonsList", expression = EMPTY_LIST)
     @Mapping(target = "profilesList", expression = EMPTY_SET)
     fun seriesRequestToSeries(
@@ -59,6 +59,7 @@ interface SeriesMapper {
     ): Series
     // Transform genres list from list tro string with this format "Element 1, Element 2, etc."
     @Mapping(target = "genres", expression = "java(series.getGenresList().stream().map(Genre::getName).collect(java.util.stream.Collectors.joining(\", \")))")
+    // Transform the Seasons list from the Seasons Responses List to the Number List using the Seasons numbers
     @Mapping(target = "seasonsList", expression = "java(series.getSeasonsList().stream().map(Season::getSeasonNumber).collect(java.util.stream.Collectors.toList()))")
     fun seriesToSeriesResponse(
         series: Series
@@ -70,27 +71,36 @@ interface SeriesMapper {
         seriesList: List<Series>
     ): List<MinimalSeriesResponse>
 }
+// Season Mapper
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 interface SeasonMapper {
-    // Set each set as empty
+    // Ignore id when mapping
     @Mapping(target = "id", ignore = true)
+    // Set series as the series sent
+    @Mapping(target = "series", expression = "java(series)")
+    // Set each set as empty
     @Mapping(target = "episodesList", expression = EMPTY_LIST)
-    @Mapping(target = "series", expression = "java(newSeries)")
     fun seasonRequestToSeason(
         seasonRequest: SeasonRequest,
-        newSeries: Series
+        series: Series
     ): Season
     fun seasonToSeasonResponse(
         season: Season
     ): SeasonResponse
+    fun seasonsListToSeasonResponsesList(
+        seasonsList: List<Season>
+    ): List<SeasonResponse>
 }
+// Episode Mapper
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 interface EpisodeMapper {
+    // Ignore id when mapping
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "season", expression = "java(newSeason)")
+    // Set season as the season sent
+    @Mapping(target = "season", expression = "java(season)")
     fun episodeRequestToEpisode(
         episodeRequest: EpisodeRequest,
-        newSeason: Season
+        season: Season
     ): Episode
     fun episodeToEpisodeResponse(
         episode: Episode

@@ -87,4 +87,7 @@ class SeriesRestController(private val seriesService: SeriesService) {
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun insert(@RequestBody seriesRequest: SeriesRequest) = seriesService.insert(seriesRequest)
+    @PostMapping("{id}/episodes", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun insertEpisodes(@PathVariable id: Long, @RequestBody seasonsList: List<SeasonRequest>) = seriesService.insertEpisodes(id, seasonsList)
 }

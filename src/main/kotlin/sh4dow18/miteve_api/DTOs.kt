@@ -36,7 +36,6 @@ data class SeriesRequest(
     var background: String,
     var trailer: String,
     var genresList: Set<Long>,
-    var seasonsList: List<SeasonRequest>
 )
 data class SeasonRequest(
     var seasonNumber: Int,
@@ -81,6 +80,10 @@ data class SeriesResponse(
     var background: String,
     var trailer: String,
     var genres: String,
+    var seasonsList: List<Int>
+)
+data class InsertEpisodesResponse(
+    var id: Long,
     var seasonsList: List<Int>
 )
 data class SeasonResponse(
