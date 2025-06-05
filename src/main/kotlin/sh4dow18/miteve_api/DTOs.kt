@@ -28,7 +28,7 @@ data class SeriesRequest(
     var year: String,
     var tagline: String,
     var description: String,
-    var rating: Int,
+    var rating: Float,
     var classification: String,
     var cast: String,
     var originCountry: String,
