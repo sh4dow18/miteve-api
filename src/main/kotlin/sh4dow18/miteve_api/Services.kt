@@ -127,7 +127,7 @@ class AbstractMovieService(
             val originalFile = "$id.webm"
             // Define the path to the directory where the movies are stored
             val moviesPath = Paths.get("$videoPath/movies/")
-            var filename = if (quality == "low") "$id-low.webm" else originalFile
+            var filename = if (quality == "low") "$id-low.mp4" else originalFile
             // Get the actual video file based on the id provided
             var videoFile = moviesPath.resolve(filename).toFile()
             // If the video file does not exist, return Not Found
@@ -410,7 +410,7 @@ class AbstractSeriesService(
             val originalFile = "Episodio $episodeNumber.webm"
             // Define the path to the directory where the movies are stored
             val moviesPath = Paths.get("$videoPath/series/$id/Temporada $seasonNumber/")
-            var filename = if (quality == "low") "Episodio $episodeNumber-low.webm" else originalFile
+            var filename = if (quality == "low") "Episodio $episodeNumber-low.mp4" else originalFile
             // Get the actual video file based on the id provided
             var videoFile = moviesPath.resolve(filename).toFile()
             // If the video file does not exist, return Not Found
