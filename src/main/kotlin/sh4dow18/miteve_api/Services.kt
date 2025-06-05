@@ -114,7 +114,7 @@ class AbstractMovieService(
     override fun streamMovieHead(id: Long, quality: String?): ResponseEntity<Void> {
         // Define the path to the directory where the movies are stored
         val moviesPath = Paths.get("$videoPath/movies/")
-        val filename = if (quality == "low") "$id-low.webm" else "$id.webm"
+        val filename = if (quality == "low") "$id-low.mp4" else "$id.webm"
         val videoFile = moviesPath.resolve(filename).toFile()
         // If the video file does not exist, return Not Found
         if (!videoFile.exists()) {
@@ -397,7 +397,7 @@ class AbstractSeriesService(
     override fun streamEpisodeHead(id: Long, seasonNumber: Int, episodeNumber: Int, quality: String?): ResponseEntity<Void> {
         // Define the path to the directory where the series are stored
         val seriesPath = Paths.get("$videoPath/series/$id/Temporada $seasonNumber/")
-        val filename = if (quality == "low") "Episodio $episodeNumber-low.webm" else "Episodio $episodeNumber.webm"
+        val filename = if (quality == "low") "Episodio $episodeNumber-low.mp4" else "Episodio $episodeNumber.webm"
         val videoFile = seriesPath.resolve(filename).toFile()
         // If the video file does not exist, return Not Found
         if (!videoFile.exists()) {
