@@ -272,6 +272,7 @@ interface SeriesService {
     fun findByIdMinimal(id: Long): MinimalSeriesResponse
     fun findById(id: Long): SeriesResponse
     fun findSeasonByNumber(id: Long, seasonNumber: Int): SeasonResponse
+    fun findNextEpisodeByNumber(id: Long, seasonNumber: Int, episodeNumber: Int): NextEpisodeResponse
     fun insert(seriesRequest: SeriesRequest): SeriesResponse
     fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse
     fun streamEpisodeHead(id: Long, seasonNumber: Int, episodeNumber: Int, quality: String?): ResponseEntity<Void>
@@ -331,6 +332,30 @@ class AbstractSeriesService(
             throw NoSuchElementExists("$seasonNumber", "Season in Series with id $id")
         }
         return seasonMapper.seasonToSeasonResponse(season)
+    }
+    override fun findNextEpisodeByNumber(id: Long, seasonNumber: Int, episodeNumber: Int): NextEpisodeResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        // Check if exists the season submitted of the series submitted
+        var season = series.seasonsList.find { it.seasonNumber == seasonNumber }
+        if (season == null) {
+            throw NoSuchElementExists("$seasonNumber", "Season in Series $id")
+        }
+        // Check if exists a next episode in this season
+        var nextEpisode = season.episodesList.find { it.episodeNumber == (episodeNumber + 1) }
+        // If not exists, check in another season
+        if (nextEpisode == null) {
+            // Check if exists the next season
+            season = series.seasonsList.find { it.seasonNumber == (seasonNumber + 1) }
+            // If does not exist, send a Not Found Error
+            if (season == null) {
+                throw NoSuchElementExists("${seasonNumber + 1}", "Season in Series $id")
+            }
+            // If exists another season, set the next episode as the first element of that season
+            nextEpisode = season.episodesList[0]
+        }
+        return episodeMapper.episodeToNextEpisodeResponse(nextEpisode)
     }
     override fun insert(seriesRequest: SeriesRequest): SeriesResponse {
         // Check if the series already exists with the same TMDB Id

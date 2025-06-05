@@ -97,6 +97,11 @@ data class EpisodeResponse(
     var title: String,
     var description: String
 )
+data class NextEpisodeResponse(
+    var id: Long,
+    var seasonNumber: Int,
+    var episodeNumber: Int,
+)
 
 // Minimal Responses
 

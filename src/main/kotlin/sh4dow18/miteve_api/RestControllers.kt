@@ -78,6 +78,10 @@ class SeriesRestController(private val seriesService: SeriesService) {
     @GetMapping("{id}/season/{seasonNumber}")
     @ResponseBody
     fun findSeasonByNumber(@PathVariable id: Long, @PathVariable seasonNumber: Int) = seriesService.findSeasonByNumber(id, seasonNumber)
+    @GetMapping("next/{id}/season/{seasonNumber}/episode/{episodeNumber}")
+    @ResponseBody
+    fun findNextEpisodeByNumber(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int) =
+        seriesService.findNextEpisodeByNumber(id, seasonNumber, episodeNumber)
     @GetMapping("stream/{id}/season/{seasonNumber}/episode/{episodeNumber}")
     @ResponseBody
     fun streamEpisode(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,

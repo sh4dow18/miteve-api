@@ -105,4 +105,8 @@ interface EpisodeMapper {
     fun episodeToEpisodeResponse(
         episode: Episode
     ): EpisodeResponse
+    @Mapping(target = "seasonNumber", expression = "java(episode.getSeason().getSeasonNumber())")
+    fun episodeToNextEpisodeResponse(
+        episode: Episode
+    ): NextEpisodeResponse
 }
