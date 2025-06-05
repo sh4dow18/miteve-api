@@ -274,9 +274,9 @@ interface SeriesService {
     fun findSeasonByNumber(id: Long, seasonNumber: Int): SeasonResponse
     fun insert(seriesRequest: SeriesRequest): SeriesResponse
     fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse
-    fun streamEpisodeHead(id: Long, quality: String?): ResponseEntity<Void>
-    fun streamEpisode(id: Long, rangeHeader: String?, quality: String?, response: HttpServletResponse)
-    fun streamSubtitles(id: Long, response: HttpServletResponse)
+    fun streamEpisodeHead(id: Long, seasonNumber: Int, episodeNumber: Int, quality: String?): ResponseEntity<Void>
+    fun streamEpisode(id: Long, seasonNumber: Int, episodeNumber: Int, rangeHeader: String?, quality: String?, response: HttpServletResponse)
+    fun streamSubtitles(id: Long, seasonNumber: Int, episodeNumber: Int, response: HttpServletResponse)
 }
 // Spring Abstract Movie Service
 @Service
@@ -369,10 +369,10 @@ class AbstractSeriesService(
         }
         return InsertEpisodesResponse(id = series.id, seasonsList = series.seasonsList.map { it.seasonNumber })
     }
-    override fun streamEpisodeHead(id: Long, quality: String?): ResponseEntity<Void> {
+    override fun streamEpisodeHead(id: Long, seasonNumber: Int, episodeNumber: Int, quality: String?): ResponseEntity<Void> {
         // Define the path to the directory where the series are stored
-        val seriesPath = Paths.get("$videoPath/series/")
-        val filename = if (quality == "low") "$id-low.webm" else "$id.webm"
+        val seriesPath = Paths.get("$videoPath/series/$id/Temporada $seasonNumber/")
+        val filename = if (quality == "low") "Episodio $episodeNumber-low.webm" else "Episodio $episodeNumber.webm"
         val videoFile = seriesPath.resolve(filename).toFile()
         // If the video file does not exist, return Not Found
         if (!videoFile.exists()) {
@@ -380,12 +380,12 @@ class AbstractSeriesService(
         }
         return ResponseEntity.ok().build()
     }
-    override fun streamEpisode(id: Long, rangeHeader: String?, quality: String?, response: HttpServletResponse) {
+    override fun streamEpisode(id: Long, seasonNumber: Int, episodeNumber: Int, rangeHeader: String?, quality: String?, response: HttpServletResponse) {
         try {
-            val originalFile = "$id.webm"
+            val originalFile = "Episodio $episodeNumber.webm"
             // Define the path to the directory where the movies are stored
-            val moviesPath = Paths.get("$videoPath/series/")
-            var filename = if (quality == "low") "$id-low.webm" else originalFile
+            val moviesPath = Paths.get("$videoPath/series/$id/Temporada $seasonNumber/")
+            var filename = if (quality == "low") "Episodio $episodeNumber-low.webm" else originalFile
             // Get the actual video file based on the id provided
             var videoFile = moviesPath.resolve(filename).toFile()
             // If the video file does not exist, return Not Found
@@ -471,11 +471,11 @@ class AbstractSeriesService(
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
         }
     }
-    override fun streamSubtitles(id: Long, response: HttpServletResponse) {
+    override fun streamSubtitles(id: Long, seasonNumber: Int, episodeNumber: Int, response: HttpServletResponse) {
         // Define the path to the directory where the movies are stored
-        val moviesPath = Paths.get("$videoPath/series/")
+        val moviesPath = Paths.get("$videoPath/series/$id/Temporada $seasonNumber/")
         // Get the actual video file based on the id provided
-        val videoFile = moviesPath.resolve("$id.webm").toFile()
+        val videoFile = moviesPath.resolve("Episodio $episodeNumber.webm").toFile()
         // If the video file does not exist, return Not Found
         if (!videoFile.exists()) {
             response.status = HttpServletResponse.SC_NOT_FOUND

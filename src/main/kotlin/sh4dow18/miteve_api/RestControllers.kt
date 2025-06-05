@@ -78,15 +78,20 @@ class SeriesRestController(private val seriesService: SeriesService) {
     @GetMapping("{id}/season/{seasonNumber}")
     @ResponseBody
     fun findSeasonByNumber(@PathVariable id: Long, @PathVariable seasonNumber: Int) = seriesService.findSeasonByNumber(id, seasonNumber)
-    @GetMapping("stream/{id}")
+    @GetMapping("stream/{id}/season/{seasonNumber}/episode/{episodeNumber}")
     @ResponseBody
-    fun streamEpisode(@PathVariable id: Long, @RequestParam("quality") quality: String?, request: HttpServletRequest, response: HttpServletResponse) =
-        seriesService.streamEpisode(id, request.getHeader("Range"), quality, response)
-    @GetMapping("subtitles/{id}")
+    fun streamEpisode(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
+                      @RequestParam("quality") quality: String?, request: HttpServletRequest,
+                      response: HttpServletResponse) =
+        seriesService.streamEpisode(id, seasonNumber, episodeNumber, request.getHeader("Range"), quality, response)
+    @GetMapping("subtitles/{id}/season/{seasonNumber}/episode/{episodeNumber}")
     @ResponseBody
-    fun streamSubtitles(@PathVariable id: Long, response: HttpServletResponse) = seriesService.streamSubtitles(id, response)
-    @RequestMapping("stream/{id}", method = [RequestMethod.HEAD])
-    fun streamEpisodeHead(@PathVariable id: Long, @RequestParam quality: String?): ResponseEntity<Void> = seriesService.streamEpisodeHead(id, quality)
+    fun streamSubtitles(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
+                        response: HttpServletResponse) = seriesService.streamSubtitles(id, seasonNumber, episodeNumber, response)
+    @RequestMapping("stream/{id}/season/{seasonNumber}/episode/{episodeNumber}", method = [RequestMethod.HEAD])
+    fun streamEpisodeHead(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
+                          @RequestParam quality: String?): ResponseEntity<Void> =
+        seriesService.streamEpisodeHead(id, seasonNumber, episodeNumber, quality)
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun insert(@RequestBody seriesRequest: SeriesRequest) = seriesService.insert(seriesRequest)
