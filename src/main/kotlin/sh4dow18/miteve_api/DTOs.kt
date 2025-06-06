@@ -44,7 +44,8 @@ data class SeasonRequest(
 data class EpisodeRequest(
     var episodeNumber: Int,
     var title: String,
-    var description: String
+    var description: String,
+    var cover: String,
 )
 
 // Responses
@@ -95,7 +96,8 @@ data class EpisodeResponse(
     var id: Long,
     var episodeNumber: Int,
     var title: String,
-    var description: String
+    var description: String,
+    var cover: String,
 )
 data class NextEpisodeResponse(
     var id: Long,

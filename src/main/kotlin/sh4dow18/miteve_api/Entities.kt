@@ -132,6 +132,8 @@ data class Episode(
     var id: Long,
     var episodeNumber: Int,
     var title: String,
+    var cover: String,
+    @Column(length = 1000)
     var description: String,
     var beginIntro: Long?,
     var endIntro: Long?,
