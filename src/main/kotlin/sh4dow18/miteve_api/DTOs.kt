@@ -47,7 +47,13 @@ data class EpisodeRequest(
     var description: String,
     var cover: String,
 )
-
+data class EpisodeMetadataRequest(
+    var beginSummary: Long?,
+    var endSummary: Long?,
+    var beginIntro: Long?,
+    var endIntro: Long?,
+    var beginCredits: Long?,
+)
 // Responses
 data class GenreResponse(
     var id: Long,
@@ -103,6 +109,14 @@ data class NextEpisodeResponse(
     var id: Long,
     var seasonNumber: Int,
     var episodeNumber: Int,
+)
+data class EpisodeMetadataResponse(
+    var id: Long,
+    var beginSummary: Long?,
+    var endSummary: Long?,
+    var beginIntro: Long?,
+    var endIntro: Long?,
+    var beginCredits: Long?,
 )
 
 // Minimal Responses

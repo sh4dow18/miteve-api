@@ -273,8 +273,10 @@ interface SeriesService {
     fun findById(id: Long): SeriesResponse
     fun findSeasonByNumber(id: Long, seasonNumber: Int): SeasonResponse
     fun findNextEpisodeByNumber(id: Long, seasonNumber: Int, episodeNumber: Int): NextEpisodeResponse
+    fun findEpisodeMetadataByNumber(id: Long, seasonNumber: Int, episodeNumber: Int): EpisodeMetadataResponse
     fun insert(seriesRequest: SeriesRequest): SeriesResponse
     fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse
+    fun updateEpisodeMetadata(id: Long, seasonNumber: Int, episodeNumber: Int, episodeMetadataRequest: EpisodeMetadataRequest): EpisodeMetadataResponse
     fun streamEpisodeHead(id: Long, seasonNumber: Int, episodeNumber: Int, quality: String?): ResponseEntity<Void>
     fun streamEpisode(id: Long, seasonNumber: Int, episodeNumber: Int, rangeHeader: String?, quality: String?, response: HttpServletResponse)
     fun streamSubtitles(id: Long, seasonNumber: Int, episodeNumber: Int, response: HttpServletResponse)
@@ -357,6 +359,22 @@ class AbstractSeriesService(
         }
         return episodeMapper.episodeToNextEpisodeResponse(nextEpisode)
     }
+    override fun findEpisodeMetadataByNumber(id: Long, seasonNumber: Int, episodeNumber: Int): EpisodeMetadataResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        // Check if exists the season submitted of the series submitted
+        val season = series.seasonsList.find { it.seasonNumber == seasonNumber }
+        if (season == null) {
+            throw NoSuchElementExists("$seasonNumber", "Season in Series $id")
+        }
+        // Check if exists the episode submitted in the season submitted of the series submitted
+        val episode = season.episodesList.find { it.episodeNumber == episodeNumber }
+        if (episode == null) {
+            throw NoSuchElementExists("$episodeNumber", "Episode in Season $seasonNumber in Series $id")
+        }
+        return episodeMapper.episodeToEpisodeMetadataResponse(episode)
+    }
     override fun insert(seriesRequest: SeriesRequest): SeriesResponse {
         // Check if the series already exists with the same TMDB Id
         if (seriesRepository.findById(seriesRequest.id).orElse(null) != null) {
@@ -394,6 +412,30 @@ class AbstractSeriesService(
         }
         return InsertEpisodesResponse(id = series.id, seasonsList = series.seasonsList.map { it.seasonNumber })
     }
+    override fun updateEpisodeMetadata(id: Long, seasonNumber: Int, episodeNumber: Int, episodeMetadataRequest: EpisodeMetadataRequest): EpisodeMetadataResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        // Check if exists the season submitted of the series submitted
+        val season = series.seasonsList.find { it.seasonNumber == seasonNumber }
+        if (season == null) {
+            throw NoSuchElementExists("$seasonNumber", "Season in Series $id")
+        }
+        // Check if exists the episode submitted in the season submitted of the series submitted
+        val episode = season.episodesList.find { it.episodeNumber == episodeNumber }
+        if (episode == null) {
+            throw NoSuchElementExists("$episodeNumber", "Episode in Season $seasonNumber in Series $id")
+        }
+        // Update all episode metadata
+        episode.beginSummary = episodeMetadataRequest.beginSummary
+        episode.endSummary = episodeMetadataRequest.endSummary
+        episode.beginIntro = episodeMetadataRequest.beginIntro
+        episode.endIntro = episodeMetadataRequest.endIntro
+        episode.beginCredits = episodeMetadataRequest.beginCredits
+        // Returns Episode Metadata Response
+        return episodeMapper.episodeToEpisodeMetadataResponse(episodeRepository.save(episode))
+    }
+
     override fun streamEpisodeHead(id: Long, seasonNumber: Int, episodeNumber: Int, quality: String?): ResponseEntity<Void> {
         // Define the path to the directory where the series are stored
         val seriesPath = Paths.get("$videoPath/series/$id/Temporada $seasonNumber/")

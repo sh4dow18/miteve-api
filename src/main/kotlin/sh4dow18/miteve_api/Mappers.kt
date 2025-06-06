@@ -109,4 +109,7 @@ interface EpisodeMapper {
     fun episodeToNextEpisodeResponse(
         episode: Episode
     ): NextEpisodeResponse
+    fun episodeToEpisodeMetadataResponse(
+        episode: Episode
+    ): EpisodeMetadataResponse
 }

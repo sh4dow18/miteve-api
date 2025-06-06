@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -82,6 +83,22 @@ class SeriesRestController(private val seriesService: SeriesService) {
     @ResponseBody
     fun findNextEpisodeByNumber(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int) =
         seriesService.findNextEpisodeByNumber(id, seasonNumber, episodeNumber)
+    @GetMapping("metadata/{id}/season/{seasonNumber}/episode/{episodeNumber}")
+    @ResponseBody
+    fun findEpisodeMetadataByNumber(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int) =
+        seriesService.findEpisodeMetadataByNumber(id, seasonNumber, episodeNumber)
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun insert(@RequestBody seriesRequest: SeriesRequest) = seriesService.insert(seriesRequest)
+    @PostMapping("{id}/episodes", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun insertEpisodes(@PathVariable id: Long, @RequestBody seasonsList: List<SeasonRequest>) = seriesService.insertEpisodes(id, seasonsList)
+    @PutMapping("metadata/{id}/season/{seasonNumber}/episode/{episodeNumber}", consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun updateEpisodeMetadata(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
+                              @RequestBody episodeMetadataRequest: EpisodeMetadataRequest) =
+        seriesService.updateEpisodeMetadata(id, seasonNumber, episodeNumber, episodeMetadataRequest)
     @GetMapping("stream/{id}/season/{seasonNumber}/episode/{episodeNumber}")
     @ResponseBody
     fun streamEpisode(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
@@ -96,10 +113,4 @@ class SeriesRestController(private val seriesService: SeriesService) {
     fun streamEpisodeHead(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
                           @RequestParam quality: String?): ResponseEntity<Void> =
         seriesService.streamEpisodeHead(id, seasonNumber, episodeNumber, quality)
-    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @ResponseBody
-    fun insert(@RequestBody seriesRequest: SeriesRequest) = seriesService.insert(seriesRequest)
-    @PostMapping("{id}/episodes", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    @ResponseBody
-    fun insertEpisodes(@PathVariable id: Long, @RequestBody seasonsList: List<SeasonRequest>) = seriesService.insertEpisodes(id, seasonsList)
 }

@@ -135,10 +135,11 @@ data class Episode(
     var cover: String,
     @Column(length = 1000)
     var description: String,
+    var beginSummary: Long?,
+    var endSummary: Long?,
     var beginIntro: Long?,
     var endIntro: Long?,
     var beginCredits: Long?,
-    var endCredits: Long?,
     @ManyToOne
     @JoinColumn(name = "season_id", nullable = false, referencedColumnName = "id")
     var season: Season
