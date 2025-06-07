@@ -114,7 +114,7 @@ class AbstractMovieService(
     override fun streamMovieHead(id: Long, quality: String?): ResponseEntity<Void> {
         // Define the path to the directory where the movies are stored
         val moviesPath = Paths.get("$videoPath/movies/")
-        val filename = if (quality == "low") "$id-low.webm" else "$id.webm"
+        val filename = if (quality == "low") "$id-low.mp4" else "$id.webm"
         val videoFile = moviesPath.resolve(filename).toFile()
         // If the video file does not exist, return Not Found
         if (!videoFile.exists()) {
@@ -127,7 +127,7 @@ class AbstractMovieService(
             val originalFile = "$id.webm"
             // Define the path to the directory where the movies are stored
             val moviesPath = Paths.get("$videoPath/movies/")
-            var filename = if (quality == "low") "$id-low.webm" else originalFile
+            var filename = if (quality == "low") "$id-low.mp4" else originalFile
             // Get the actual video file based on the id provided
             var videoFile = moviesPath.resolve(filename).toFile()
             // If the video file does not exist, return Not Found
@@ -218,6 +218,331 @@ class AbstractMovieService(
         val moviesPath = Paths.get("$videoPath/movies/")
         // Get the actual video file based on the id provided
         val videoFile = moviesPath.resolve("$id.webm").toFile()
+        // If the video file does not exist, return Not Found
+        if (!videoFile.exists()) {
+            response.status = HttpServletResponse.SC_NOT_FOUND
+            return
+        }
+        // Prepare Ffmpeg to get the subtitles from video
+        val pb = ProcessBuilder(
+            "ffmpeg",
+            "-i", videoFile.absolutePath,
+            "-map", "0:s:0",
+            "-f", "webvtt",
+            "-"
+        )
+        var process: Process? = null
+        try {
+            // Execute the command to get subtitles
+            process = pb.start()
+            // Get Subtitles as a variable
+            val processOutput = process.inputStream
+            // Check if the video has subtitles
+            val checkBuffer = ByteArray(1024)
+            val bytesRead = processOutput.read(checkBuffer)
+            if (bytesRead == -1) {
+                response.status = HttpServletResponse.SC_NOT_FOUND
+                process.destroy()
+                return
+            }
+            // Add WebVtt content type
+            response.contentType = "text/vtt"
+            response.outputStream.write(checkBuffer, 0, bytesRead)
+            // Put al WebVtt in HTTP Response
+            val buffer = ByteArray(8192)
+            var len: Int
+            while (processOutput.read(buffer).also { len = it } != -1) {
+                response.outputStream.write(buffer, 0, len)
+            }
+            response.outputStream.flush()
+            process.waitFor()
+
+        } catch (e: Exception) {
+            // If any unexpected error occurs, print stack trace and return Internal Server Error
+            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            process?.destroy()
+        }
+    }
+}
+// Series Service Interface where the functions to be used in
+// Spring Abstract Series Service are declared
+interface SeriesService {
+    fun findAll(): List<MinimalSeriesResponse>
+    fun findAllRecommendationsById(id: Long): List<MinimalSeriesResponse>
+    fun findByIdMinimal(id: Long): MinimalSeriesResponse
+    fun findById(id: Long): SeriesResponse
+    fun findSeasonByNumber(id: Long, seasonNumber: Int): SeasonResponse
+    fun findNextEpisodeByNumber(id: Long, seasonNumber: Int, episodeNumber: Int): NextEpisodeResponse
+    fun findEpisodeMetadataByNumber(id: Long, seasonNumber: Int, episodeNumber: Int): EpisodeMetadataResponse
+    fun insert(seriesRequest: SeriesRequest): SeriesResponse
+    fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse
+    fun updateEpisodeMetadata(id: Long, seasonNumber: Int, episodeNumber: Int, episodeMetadataRequest: EpisodeMetadataRequest): EpisodeMetadataResponse
+    fun streamEpisodeHead(id: Long, seasonNumber: Int, episodeNumber: Int, quality: String?): ResponseEntity<Void>
+    fun streamEpisode(id: Long, seasonNumber: Int, episodeNumber: Int, rangeHeader: String?, quality: String?, response: HttpServletResponse)
+    fun streamSubtitles(id: Long, seasonNumber: Int, episodeNumber: Int, response: HttpServletResponse)
+}
+// Spring Abstract Movie Service
+@Service
+class AbstractSeriesService(
+    // Movie Service Props
+    @Autowired
+    val seriesRepository: SeriesRepository,
+    @Autowired
+    val genreRepository: GenreRepository,
+    @Autowired
+    val seasonRepository: SeasonRepository,
+    @Autowired
+    val episodeRepository: EpisodeRepository,
+    @Autowired
+    val seriesMapper: SeriesMapper,
+    @Autowired
+    val seasonMapper: SeasonMapper,
+    @Autowired
+    val episodeMapper: EpisodeMapper,
+    @Value("\${video_path}")
+    val videoPath: String? = null
+): SeriesService {
+    override fun findAll(): List<MinimalSeriesResponse> {
+        // Returns all Movies as a Movies Responses List
+        return seriesMapper.seriesListToMinimalSeriesResponsesList(seriesRepository.findAll())
+    }
+    override fun findAllRecommendationsById(id: Long): List<MinimalSeriesResponse> {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        val recommendationsList = genreRepository.findSeriesByGenreNameIgnoreCaseAndIdNot(series.genresList.toList()[0].name, series.id)
+        return seriesMapper.seriesListToMinimalSeriesResponsesList(recommendationsList.toList())
+    }
+    override fun findByIdMinimal(id: Long): MinimalSeriesResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        return seriesMapper.seriesToMinimalSeriesResponse(series)
+    }
+    override fun findById(id: Long): SeriesResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        return seriesMapper.seriesToSeriesResponse(series)
+    }
+    override fun findSeasonByNumber(id: Long, seasonNumber: Int): SeasonResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        val season = series.seasonsList.find { it.seasonNumber == seasonNumber }
+        if (season == null) {
+            throw NoSuchElementExists("$seasonNumber", "Season in Series with id $id")
+        }
+        return seasonMapper.seasonToSeasonResponse(season)
+    }
+    override fun findNextEpisodeByNumber(id: Long, seasonNumber: Int, episodeNumber: Int): NextEpisodeResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        // Check if exists the season submitted of the series submitted
+        var season = series.seasonsList.find { it.seasonNumber == seasonNumber }
+        if (season == null) {
+            throw NoSuchElementExists("$seasonNumber", "Season in Series $id")
+        }
+        // Check if exists a next episode in this season
+        var nextEpisode = season.episodesList.find { it.episodeNumber == (episodeNumber + 1) }
+        // If not exists, check in another season
+        if (nextEpisode == null) {
+            // Check if exists the next season
+            season = series.seasonsList.find { it.seasonNumber == (seasonNumber + 1) }
+            // If does not exist, send a Not Found Error
+            if (season == null) {
+                throw NoSuchElementExists("${seasonNumber + 1}", "Season in Series $id")
+            }
+            // If exists another season, set the next episode as the first element of that season
+            nextEpisode = season.episodesList[0]
+        }
+        return episodeMapper.episodeToNextEpisodeResponse(nextEpisode)
+    }
+    override fun findEpisodeMetadataByNumber(id: Long, seasonNumber: Int, episodeNumber: Int): EpisodeMetadataResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        // Check if exists the season submitted of the series submitted
+        val season = series.seasonsList.find { it.seasonNumber == seasonNumber }
+        if (season == null) {
+            throw NoSuchElementExists("$seasonNumber", "Season in Series $id")
+        }
+        // Check if exists the episode submitted in the season submitted of the series submitted
+        val episode = season.episodesList.find { it.episodeNumber == episodeNumber }
+        if (episode == null) {
+            throw NoSuchElementExists("$episodeNumber", "Episode in Season $seasonNumber in Series $id")
+        }
+        return episodeMapper.episodeToEpisodeMetadataResponse(episode)
+    }
+    override fun insert(seriesRequest: SeriesRequest): SeriesResponse {
+        // Check if the series already exists with the same TMDB Id
+        if (seriesRepository.findById(seriesRequest.id).orElse(null) != null) {
+            throw ElementAlreadyExists("${seriesRequest.id}", "Series")
+        }
+        // Check if each genre submitted exists
+        val genresList = genreRepository.findAllById(seriesRequest.genresList)
+        if (genresList.size != seriesRequest.genresList.size) {
+            val missingIds = seriesRequest.genresList - genresList.map { it.id }.toSet()
+            throw NoSuchElementExists(missingIds.toList().toString(), "Genres")
+        }
+        // If the series not exists and each genre exists, create the new series
+        val newSeries = seriesMapper.seriesRequestToSeries(seriesRequest, genresList.toSet())
+        // Transforms the New series to a series Response and Returns it
+        return seriesMapper.seriesToSeriesResponse(seriesRepository.save(newSeries))
+    }
+    override fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse {
+        // Check if the series already exists with the same TMDB Id
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        seasonsList.forEach { seasonRequest ->
+            // Check if exists already the season submitted
+            val existingSeason = series.seasonsList.find { it.seasonNumber == seasonRequest.seasonNumber }
+            // If the season exists, set the existing season, if not, create a new one
+            val season = existingSeason ?: seasonRepository.save(seasonMapper.seasonRequestToSeason(seasonRequest, series))
+            seasonRequest.episodesList.forEach { episodeRequest ->
+                // Check if exists already the episode submitted from the season submitted
+                val existingEpisode = season.episodesList.find { it.episodeNumber == episodeRequest.episodeNumber }
+                // If the episode does not exist, create a new one
+                if (existingEpisode == null) {
+                    episodeRepository.save(episodeMapper.episodeRequestToEpisode(episodeRequest, season))
+                }
+            }
+        }
+        return InsertEpisodesResponse(id = series.id, seasonsList = series.seasonsList.map { it.seasonNumber })
+    }
+    override fun updateEpisodeMetadata(id: Long, seasonNumber: Int, episodeNumber: Int, episodeMetadataRequest: EpisodeMetadataRequest): EpisodeMetadataResponse {
+        val series = seriesRepository.findById(id).orElseThrow {
+            NoSuchElementExists("$id", "Series")
+        }
+        // Check if exists the season submitted of the series submitted
+        val season = series.seasonsList.find { it.seasonNumber == seasonNumber }
+        if (season == null) {
+            throw NoSuchElementExists("$seasonNumber", "Season in Series $id")
+        }
+        // Check if exists the episode submitted in the season submitted of the series submitted
+        val episode = season.episodesList.find { it.episodeNumber == episodeNumber }
+        if (episode == null) {
+            throw NoSuchElementExists("$episodeNumber", "Episode in Season $seasonNumber in Series $id")
+        }
+        // Update all episode metadata
+        episode.beginSummary = episodeMetadataRequest.beginSummary
+        episode.endSummary = episodeMetadataRequest.endSummary
+        episode.beginIntro = episodeMetadataRequest.beginIntro
+        episode.endIntro = episodeMetadataRequest.endIntro
+        episode.beginCredits = episodeMetadataRequest.beginCredits
+        // Returns Episode Metadata Response
+        return episodeMapper.episodeToEpisodeMetadataResponse(episodeRepository.save(episode))
+    }
+
+    override fun streamEpisodeHead(id: Long, seasonNumber: Int, episodeNumber: Int, quality: String?): ResponseEntity<Void> {
+        // Define the path to the directory where the series are stored
+        val seriesPath = Paths.get("$videoPath/series/$id/Temporada $seasonNumber/")
+        val filename = if (quality == "low") "Episodio $episodeNumber-low.mp4" else "Episodio $episodeNumber.webm"
+        val videoFile = seriesPath.resolve(filename).toFile()
+        // If the video file does not exist, return Not Found
+        if (!videoFile.exists()) {
+            return ResponseEntity.notFound().build()
+        }
+        return ResponseEntity.ok().build()
+    }
+    override fun streamEpisode(id: Long, seasonNumber: Int, episodeNumber: Int, rangeHeader: String?, quality: String?, response: HttpServletResponse) {
+        try {
+            val originalFile = "Episodio $episodeNumber.webm"
+            // Define the path to the directory where the movies are stored
+            val moviesPath = Paths.get("$videoPath/series/$id/Temporada $seasonNumber/")
+            var filename = if (quality == "low") "Episodio $episodeNumber-low.mp4" else originalFile
+            // Get the actual video file based on the id provided
+            var videoFile = moviesPath.resolve(filename).toFile()
+            // If the video file does not exist, return Not Found
+            if (!videoFile.exists()) {
+                if (quality != "low") {
+                    response.status = HttpServletResponse.SC_NOT_FOUND
+                    return
+                }
+                filename = originalFile
+                videoFile = moviesPath.resolve(filename).toFile()
+                if (!videoFile.exists()) {
+                    response.status = HttpServletResponse.SC_NOT_FOUND
+                    return
+                }
+            }
+            // Get the total size of the video file in bytes
+            val fileLength = videoFile.length()
+            // Open the file for random access reading to support byte-range requests
+            val inputFile = RandomAccessFile(videoFile, "r")
+            try {
+                // If there is no Range header, or it does not start with "bytes=", send the whole file
+                if (rangeHeader == null || !rangeHeader.startsWith("bytes=")) {
+                    response.status = HttpServletResponse.SC_OK
+                    response.contentType = "video/webm"
+                    response.setHeader("Content-Length", fileLength.toString())
+                    // Stream the entire video file to the response output stream
+                    videoFile.inputStream().use { input ->
+                        response.outputStream.use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    return
+                }
+                // If there is a Range header, parse it to extract the byte range
+                val matcher = Regex("bytes=(\\d+)-(\\d*)").find(rangeHeader)
+                if (matcher != null) {
+                    val startStr = matcher.groups[1]?.value
+                    val endStr = matcher.groups[2]?.value
+                    // Convert the start and end of the range to Long values
+                    val start = startStr?.toLongOrNull() ?: 0
+                    val end = if (!endStr.isNullOrEmpty()) endStr.toLong() else fileLength - 1
+                    // Validate the range: start must be <= end, and end must be within the file size
+                    if (start > end || end >= fileLength) {
+                        response.status = HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE
+                        response.setHeader("Content-Range", "bytes */$fileLength")
+                        return
+                    }
+                    // Calculate how many bytes it will send
+                    val contentLength = end - start + 1
+                    response.status = HttpServletResponse.SC_PARTIAL_CONTENT
+                    response.contentType = "video/webm"
+                    response.setHeader("Accept-Ranges", "bytes")
+                    response.setHeader("Content-Length", contentLength.toString())
+                    response.setHeader("Content-Range", "bytes $start-$end/$fileLength")
+                    // Move the file pointer to the start of the requested range
+                    inputFile.seek(start)
+                    val buffer = ByteArray(8192)
+                    var bytesToRead = contentLength
+                    val output = response.outputStream
+                    // Read from the file and write to the response in chunks until all bytes are sent
+                    while (bytesToRead > 0) {
+                        val read = inputFile.read(buffer, 0, minOf(buffer.size.toLong(), bytesToRead).toInt())
+                        if (read == -1) break
+                        output.write(buffer, 0, read)
+                        bytesToRead -= read
+                    }
+                } else {
+                    // If the Range header is malformed, return 400 Bad Request
+                    response.status = HttpServletResponse.SC_BAD_REQUEST
+                }
+            }
+            catch (_: ClientAbortException) {}
+            catch (_: AsyncRequestNotUsableException) {}
+            finally {
+                // Close the RandomAccessFile
+                inputFile.close()
+            }
+        }
+        catch (_: ClientAbortException) {}
+        catch (e: Exception) {
+            // If any unexpected error occurs, print stack trace and return Internal Server Error
+            e.printStackTrace()
+            response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+        }
+    }
+    override fun streamSubtitles(id: Long, seasonNumber: Int, episodeNumber: Int, response: HttpServletResponse) {
+        // Define the path to the directory where the movies are stored
+        val moviesPath = Paths.get("$videoPath/series/$id/Temporada $seasonNumber/")
+        // Get the actual video file based on the id provided
+        val videoFile = moviesPath.resolve("Episodio $episodeNumber.webm").toFile()
         // If the video file does not exist, return Not Found
         if (!videoFile.exists()) {
             response.status = HttpServletResponse.SC_NOT_FOUND

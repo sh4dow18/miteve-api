@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -56,5 +57,60 @@ class MovieRestController(private val movieService: MovieService) {
     fun streamMovieHead(@PathVariable id: Long, @RequestParam quality: String?): ResponseEntity<Void> = movieService.streamMovieHead(id, quality)
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
-    fun insert(@RequestBody movieRequest: MovieRequest): MovieResponse = movieService.insert(movieRequest)
+    fun insert(@RequestBody movieRequest: MovieRequest) = movieService.insert(movieRequest)
+}
+// Series Rest Controller
+@RestController
+@RequestMapping("\${endpoint.series}")
+@CrossOrigin(origins = ["http://localhost:3001"])
+class SeriesRestController(private val seriesService: SeriesService) {
+    @GetMapping
+    @ResponseBody
+    fun findAll() = seriesService.findAll()
+    @GetMapping("recommendations/{id}")
+    @ResponseBody
+    fun findAllRecommendationsById(@PathVariable id: Long) = seriesService.findAllRecommendationsById(id)
+    @GetMapping("minimal/{id}")
+    @ResponseBody
+    fun findByIdMinimal(@PathVariable id: Long) = seriesService.findByIdMinimal(id)
+    @GetMapping("{id}")
+    @ResponseBody
+    fun findById(@PathVariable id: Long) = seriesService.findById(id)
+    @GetMapping("{id}/season/{seasonNumber}")
+    @ResponseBody
+    fun findSeasonByNumber(@PathVariable id: Long, @PathVariable seasonNumber: Int) = seriesService.findSeasonByNumber(id, seasonNumber)
+    @GetMapping("next/{id}/season/{seasonNumber}/episode/{episodeNumber}")
+    @ResponseBody
+    fun findNextEpisodeByNumber(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int) =
+        seriesService.findNextEpisodeByNumber(id, seasonNumber, episodeNumber)
+    @GetMapping("metadata/{id}/season/{seasonNumber}/episode/{episodeNumber}")
+    @ResponseBody
+    fun findEpisodeMetadataByNumber(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int) =
+        seriesService.findEpisodeMetadataByNumber(id, seasonNumber, episodeNumber)
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun insert(@RequestBody seriesRequest: SeriesRequest) = seriesService.insert(seriesRequest)
+    @PostMapping("{id}/episodes", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun insertEpisodes(@PathVariable id: Long, @RequestBody seasonsList: List<SeasonRequest>) = seriesService.insertEpisodes(id, seasonsList)
+    @PutMapping("metadata/{id}/season/{seasonNumber}/episode/{episodeNumber}", consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun updateEpisodeMetadata(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
+                              @RequestBody episodeMetadataRequest: EpisodeMetadataRequest) =
+        seriesService.updateEpisodeMetadata(id, seasonNumber, episodeNumber, episodeMetadataRequest)
+    @GetMapping("stream/{id}/season/{seasonNumber}/episode/{episodeNumber}")
+    @ResponseBody
+    fun streamEpisode(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
+                      @RequestParam("quality") quality: String?, request: HttpServletRequest,
+                      response: HttpServletResponse) =
+        seriesService.streamEpisode(id, seasonNumber, episodeNumber, request.getHeader("Range"), quality, response)
+    @GetMapping("subtitles/{id}/season/{seasonNumber}/episode/{episodeNumber}")
+    @ResponseBody
+    fun streamSubtitles(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
+                        response: HttpServletResponse) = seriesService.streamSubtitles(id, seasonNumber, episodeNumber, response)
+    @RequestMapping("stream/{id}/season/{seasonNumber}/episode/{episodeNumber}", method = [RequestMethod.HEAD])
+    fun streamEpisodeHead(@PathVariable id: Long, @PathVariable seasonNumber: Int, @PathVariable episodeNumber: Int,
+                          @RequestParam quality: String?): ResponseEntity<Void> =
+        seriesService.streamEpisodeHead(id, seasonNumber, episodeNumber, quality)
 }
