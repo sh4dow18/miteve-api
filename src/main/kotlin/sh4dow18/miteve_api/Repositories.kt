@@ -9,8 +9,8 @@ import java.util.Optional
 @Repository
 interface GenreRepository: JpaRepository<Genre, Long> {
     fun findByNameIgnoreCase(@Param("name") name: String): Optional<Genre>
-    @Query("SELECT g.seriesList FROM Genre g WHERE LOWER(g.name) = LOWER(:name)")
-    fun findSeriesByGenreNameIgnoreCase(@Param("name") name: String): List<Series>
+    @Query("SELECT s FROM Genre g JOIN g.seriesList s WHERE LOWER(g.name) = LOWER(:name) AND s.id <> :id")
+    fun findSeriesByGenreNameIgnoreCaseAndIdNot(@Param("name") name: String, @Param("id") id: Long): List<Series>
 }
 // Movie Repository
 @Repository

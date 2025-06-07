@@ -310,7 +310,7 @@ class AbstractSeriesService(
         val series = seriesRepository.findById(id).orElseThrow {
             NoSuchElementExists("$id", "Series")
         }
-        val recommendationsList = genreRepository.findSeriesByGenreNameIgnoreCase(series.genresList.toList()[0].name)
+        val recommendationsList = genreRepository.findSeriesByGenreNameIgnoreCaseAndIdNot(series.genresList.toList()[0].name, series.id)
         return seriesMapper.seriesListToMinimalSeriesResponsesList(recommendationsList.toList())
     }
     override fun findByIdMinimal(id: Long): MinimalSeriesResponse {

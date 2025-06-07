@@ -11,6 +11,7 @@ import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
+import jakarta.persistence.OrderBy
 import jakarta.persistence.Table
 // Genre Entity
 @Entity
@@ -121,6 +122,7 @@ data class Season(
     @JoinColumn(name = "series_id", nullable = false, referencedColumnName = "id")
     var series: Series,
     @OneToMany(mappedBy = "season", targetEntity = Episode::class)
+    @OrderBy("episodeNumber ASC")
     var episodesList: List<Episode>
 )
 // Episode Entity
