@@ -54,7 +54,13 @@ data class EpisodeMetadataRequest(
     var endIntro: Long?,
     var beginCredits: Long?,
 )
+data class ContainerRequest(
+    var name: String,
+    var type: String,
+)
+
 // Responses
+
 data class GenreResponse(
     var id: Long,
     var name: String,
@@ -117,6 +123,33 @@ data class EpisodeMetadataResponse(
     var beginIntro: Long?,
     var endIntro: Long?,
     var beginCredits: Long?,
+)
+data class ContainerResponse(
+    var id: Long,
+    var name: String,
+    var type: String,
+)
+data class MovieContainerResponse(
+    var id: Long,
+    var name: String,
+    var type: String,
+    var containerElementsList: List<MovieContainerElementResponse>
+)
+data class MovieContainerElementResponse(
+    var id: Long,
+    var orderNumber: Int,
+    var movie: MinimalMovieResponse
+)
+data class SeriesContainerResponse(
+    var id: Long,
+    var name: String,
+    var type: String,
+    var containerElementsList: List<SeriesContainerElementResponse>
+)
+data class SeriesContainerElementResponse(
+    var id: Long,
+    var orderNumber: Int,
+    var series: MinimalSeriesResponse
 )
 
 // Minimal Responses

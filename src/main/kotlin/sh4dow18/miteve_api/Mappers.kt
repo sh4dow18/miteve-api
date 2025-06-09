@@ -113,3 +113,19 @@ interface EpisodeMapper {
         episode: Episode
     ): EpisodeMetadataResponse
 }
+// Container Mapper
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+interface ContainerMapper {
+    fun containerRequestToContainer(
+        containerRequest: ContainerRequest
+    ): Container
+    fun containerToContainerResponse(
+        container: Container
+    ): ContainerResponse
+    fun containersListToMovieContainerResponsesList(
+        containersList: List<Container>
+    ): List<MovieContainerResponse>
+    fun containersListToSeriesContainerResponsesList(
+        containersList: List<Container>
+    ): List<SeriesContainerResponse>
+}

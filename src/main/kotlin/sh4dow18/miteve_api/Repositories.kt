@@ -27,3 +27,12 @@ interface SeasonRepository: JpaRepository<Season, Long>
 // Episode Repository
 @Repository
 interface EpisodeRepository: JpaRepository<Episode, Long>
+// Container Repository
+@Repository
+interface ContainerRepository: JpaRepository<Container, Long> {
+    fun findAllByType(@Param("type") type: String): List<Container>
+    fun findContainerByNameIgnoreCase(@Param("name") name: String): Optional<Container>
+}
+// Container Element Repository
+@Repository
+interface ContainerElementRepository: JpaRepository<ContainerElement, Long>

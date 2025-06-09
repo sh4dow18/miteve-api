@@ -114,3 +114,18 @@ class SeriesRestController(private val seriesService: SeriesService) {
                           @RequestParam quality: String?): ResponseEntity<Void> =
         seriesService.streamEpisodeHead(id, seasonNumber, episodeNumber, quality)
 }
+// Container Rest Controller
+@RestController
+@RequestMapping("\${endpoint.containers}")
+@CrossOrigin(origins = ["http://localhost:3001"])
+class ContainerRestController(private val containerService: ContainerService) {
+    @GetMapping("movies")
+    @ResponseBody
+    fun findAllMovieContainers() = containerService.findAllMovieContainers()
+    @GetMapping("series")
+    @ResponseBody
+    fun findAllSeriesContainers() = containerService.findAllSeriesContainers()
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun insert(@RequestBody containerRequest: ContainerRequest) = containerService.insert(containerRequest)
+}

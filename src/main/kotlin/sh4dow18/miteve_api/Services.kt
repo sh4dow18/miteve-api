@@ -281,10 +281,10 @@ interface SeriesService {
     fun streamEpisode(id: Long, seasonNumber: Int, episodeNumber: Int, rangeHeader: String?, quality: String?, response: HttpServletResponse)
     fun streamSubtitles(id: Long, seasonNumber: Int, episodeNumber: Int, response: HttpServletResponse)
 }
-// Spring Abstract Movie Service
+// Spring Abstract Series Service
 @Service
 class AbstractSeriesService(
-    // Movie Service Props
+    // Series Service Props
     @Autowired
     val seriesRepository: SeriesRepository,
     @Autowired
@@ -587,5 +587,39 @@ class AbstractSeriesService(
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             process?.destroy()
         }
+    }
+}
+// Container Service Interface where the functions to be used in
+// Spring Abstract Container Service are declared
+interface ContainerService {
+    fun findAllMovieContainers(): List<MovieContainerResponse>
+    fun findAllSeriesContainers(): List<SeriesContainerResponse>
+    fun insert(containerRequest: ContainerRequest): ContainerResponse
+}
+// Spring Abstract Movie Service
+@Service
+class AbstractContainerService(
+    // Container Service Props
+    @Autowired
+    val containerRepository: ContainerRepository,
+    @Autowired
+    val containerMapper: ContainerMapper
+): ContainerService {
+    override fun findAllMovieContainers(): List<MovieContainerResponse> {
+        // Returns all Containers as a Movies Containers Responses List
+        return containerMapper.containersListToMovieContainerResponsesList(containerRepository.findAllByType("movies"))
+    }
+    override fun findAllSeriesContainers(): List<SeriesContainerResponse> {
+        // Returns all Containers as a Series Containers Responses List
+        return containerMapper.containersListToSeriesContainerResponsesList(containerRepository.findAllByType("series"))
+    }
+    override fun insert(containerRequest: ContainerRequest): ContainerResponse {
+        // Check if already exists a container with the same name
+        val container = containerRepository.findContainerByNameIgnoreCase(containerRequest.name).orElse(null)
+        if (container != null) {
+            throw ElementAlreadyExists(containerRequest.name, "Container")
+        }
+        val newContainer = containerMapper.containerRequestToContainer(containerRequest)
+        return containerMapper.containerToContainerResponse(containerRepository.save(newContainer))
     }
 }
