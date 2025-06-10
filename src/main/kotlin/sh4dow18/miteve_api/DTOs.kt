@@ -38,6 +38,8 @@ data class SeriesRequest(
     var background: String,
     var trailer: String,
     var genresList: Set<Long>,
+    var containerId: Long,
+    var orderInContainer: Int,
 )
 data class SeasonRequest(
     var seasonNumber: Int,

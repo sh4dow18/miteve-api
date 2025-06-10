@@ -117,6 +117,10 @@ class AbstractMovieService(
         val container = containerRepository.findById(movieRequest.containerId).orElseThrow {
             NoSuchElementExists("${movieRequest.containerId}", "Container")
         }
+        // Check if it is a Movie Container
+        if (container.type != "movie") {
+            throw BadRequest("Container ${movieRequest.containerId} is not a Movie Container")
+        }
         // Update the elements to set the container element in a specific order
         containerElementRepository.shiftOrderNumberFrom(container, movieRequest.orderInContainer)
         // If the movie not exists and each genre exists, create the new movie
@@ -315,6 +319,12 @@ class AbstractSeriesService(
     val seasonMapper: SeasonMapper,
     @Autowired
     val episodeMapper: EpisodeMapper,
+    @Autowired
+    val containerRepository: ContainerRepository,
+    @Autowired
+    val containerElementRepository: ContainerElementRepository,
+    @Autowired
+    val containerElementMapper: ContainerElementMapper,
     @Value("\${video_path}")
     val videoPath: String? = null
 ): SeriesService {
@@ -391,6 +401,7 @@ class AbstractSeriesService(
         }
         return episodeMapper.episodeToEpisodeMetadataResponse(episode)
     }
+    @Transactional
     override fun insert(seriesRequest: SeriesRequest): SeriesResponse {
         // Check if the series already exists with the same TMDB Id
         if (seriesRepository.findById(seriesRequest.id).orElse(null) != null) {
@@ -402,10 +413,22 @@ class AbstractSeriesService(
             val missingIds = seriesRequest.genresList - genresList.map { it.id }.toSet()
             throw NoSuchElementExists(missingIds.toList().toString(), "Genres")
         }
+        val container = containerRepository.findById(seriesRequest.containerId).orElseThrow {
+            NoSuchElementExists("${seriesRequest.containerId}", "Container")
+        }
+        // Check if it is a Series Container
+        if (container.type != "series") {
+            throw BadRequest("Container ${seriesRequest.containerId} is not a Series Container")
+        }
+        // Update the elements to set the container element in a specific order
+        containerElementRepository.shiftOrderNumberFrom(container, seriesRequest.orderInContainer)
         // If the series not exists and each genre exists, create the new series
-        val newSeries = seriesMapper.seriesRequestToSeries(seriesRequest, genresList.toSet())
+        val newSeries = seriesRepository.save(seriesMapper.seriesRequestToSeries(seriesRequest, genresList.toSet()))
+        // Create new Container Element that will have the movie
+        val newContainerElement = containerElementMapper.seriesContainerElementRequestToContainerElement(seriesRequest.orderInContainer, newSeries, container)
+        containerElementRepository.save(newContainerElement)
         // Transforms the New series to a series Response and Returns it
-        return seriesMapper.seriesToSeriesResponse(seriesRepository.save(newSeries))
+        return seriesMapper.seriesToSeriesResponse(newSeries)
     }
     override fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse {
         // Check if the series already exists with the same TMDB Id

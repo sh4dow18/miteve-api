@@ -16,6 +16,9 @@ class ElementAlreadyExists(element: String, existsAs: String) :
 // "No Such Element Exists" class based on "Runtime Exception" class for use in error handlers with a template message
 class NoSuchElementExists(element: String, notExistsAs: String) :
     RuntimeException("The element with the id $element does not exists as $notExistsAs")
+// "Bad Request" class based on "Runtime Exception" class for use in error handlers with a template message
+class BadRequest(message: String) :
+    RuntimeException(message)
 // Error Handlers Main Class
 @ControllerAdvice
 class ErrorsHandler: ResponseEntityExceptionHandler() {
@@ -41,6 +44,18 @@ class ErrorsHandler: ResponseEntityExceptionHandler() {
             message = exception.message
         )
         logger.debug("No Such Element Exists: {}", exception)
+        return ResponseEntity(apiError, apiError.status)
+    }
+    // Error handler when exists a bad request
+    @ExceptionHandler(BadRequest::class)
+    fun badRequest(
+        exception: java.lang.Exception,
+    ): ResponseEntity<Any> {
+        val apiError = ApiError(
+            status = HttpStatus.BAD_REQUEST,
+            message = exception.message
+        )
+        logger.debug("Bad Request: {}", exception)
         return ResponseEntity(apiError, apiError.status)
     }
     // Default error handler for each exception that does not have a specific error handler
