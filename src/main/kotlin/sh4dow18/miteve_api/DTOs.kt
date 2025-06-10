@@ -20,7 +20,9 @@ data class MovieRequest(
     var background: String,
     var trailer: String,
     var content: String,
-    var genresList: Set<Long>
+    var genresList: Set<Long>,
+    var containerId: Long,
+    var orderInContainer: Int,
 )
 data class SeriesRequest(
     var id: Long,

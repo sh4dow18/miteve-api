@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import java.io.RandomAccessFile
 import java.nio.file.Paths
@@ -68,6 +69,12 @@ class AbstractMovieService(
     val movieMapper: MovieMapper,
     @Autowired
     val genreRepository: GenreRepository,
+    @Autowired
+    val containerRepository: ContainerRepository,
+    @Autowired
+    val containerElementRepository: ContainerElementRepository,
+    @Autowired
+    val containerElementMapper: ContainerElementMapper,
     @Value("\${video_path}")
     val videoPath: String? = null
 ): MovieService {
@@ -95,6 +102,7 @@ class AbstractMovieService(
         }
         return movieMapper.movieToMovieResponse(movie)
     }
+    @Transactional
     override fun insert(movieRequest: MovieRequest): MovieResponse {
         // Check if the movie already exists with the same TMDB Id
         if (movieRepository.findById(movieRequest.id).orElse(null) != null) {
@@ -106,10 +114,18 @@ class AbstractMovieService(
             val missingIds = movieRequest.genresList - genresList.map { it.id }.toSet()
             throw NoSuchElementExists(missingIds.toList().toString(), "Genres")
         }
+        val container = containerRepository.findById(movieRequest.containerId).orElseThrow {
+            NoSuchElementExists("${movieRequest.containerId}", "Container")
+        }
+        // Update the elements to set the container element in a specific order
+        containerElementRepository.shiftOrderNumberFrom(container, movieRequest.orderInContainer)
         // If the movie not exists and each genre exists, create the new movie
-        val newMovie = movieMapper.movieRequestToMovie(movieRequest, genresList.toSet())
+        val newMovie = movieRepository.save(movieMapper.movieRequestToMovie(movieRequest, genresList.toSet()))
+        // Create new Container Element that will have the movie
+        val newContainerElement = containerElementMapper.movieContainerElementRequestToContainerElement(movieRequest.orderInContainer, newMovie, container)
+        containerElementRepository.save(newContainerElement)
         // Transforms the New movie to a movie Response and Returns it
-        return movieMapper.movieToMovieResponse(movieRepository.save(newMovie))
+        return movieMapper.movieToMovieResponse(newMovie)
     }
     override fun streamMovieHead(id: Long, quality: String?): ResponseEntity<Void> {
         // Define the path to the directory where the movies are stored

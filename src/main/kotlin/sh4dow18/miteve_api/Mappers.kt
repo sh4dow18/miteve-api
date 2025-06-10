@@ -78,7 +78,7 @@ interface SeasonMapper {
     @Mapping(target = "id", ignore = true)
     // Set series as the series sent
     @Mapping(target = "series", expression = "java(series)")
-    // Set each set as empty
+    // Set each list as empty
     @Mapping(target = "episodesList", expression = EMPTY_LIST)
     fun seasonRequestToSeason(
         seasonRequest: SeasonRequest,
@@ -116,6 +116,8 @@ interface EpisodeMapper {
 // Container Mapper
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 interface ContainerMapper {
+    // Set each list as empty
+    @Mapping(target = "containerElementsList", expression = EMPTY_LIST)
     fun containerRequestToContainer(
         containerRequest: ContainerRequest
     ): Container
@@ -128,4 +130,22 @@ interface ContainerMapper {
     fun containersListToSeriesContainerResponsesList(
         containersList: List<Container>
     ): List<SeriesContainerResponse>
+}
+// Container Element Mapper
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+interface ContainerElementMapper {
+    // Ignore id when mapping
+    @Mapping(target = "id", ignore = true)
+    fun movieContainerElementRequestToContainerElement(
+        orderNumber: Int,
+        movie: Movie,
+        container: Container
+    ): ContainerElement
+    // Ignore id when mapping
+    @Mapping(target = "id", ignore = true)
+    fun seriesContainerElementRequestToContainerElement(
+        orderNumber: Int,
+        series: Series,
+        container: Container
+    ): ContainerElement
 }
