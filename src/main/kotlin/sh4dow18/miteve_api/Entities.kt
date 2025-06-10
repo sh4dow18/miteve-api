@@ -58,7 +58,6 @@ data class Movie(
     var cover: String,
     var background: String,
     var trailer: String,
-    var content: String,
     @ManyToMany(targetEntity = Genre::class)
     @JoinTable(
         name = "movie_genre",

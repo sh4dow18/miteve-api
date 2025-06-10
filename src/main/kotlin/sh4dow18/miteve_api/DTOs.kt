@@ -19,7 +19,6 @@ data class MovieRequest(
     var cover: String,
     var background: String,
     var trailer: String,
-    var content: String,
     var genresList: Set<Long>,
     var containerId: Long,
     var orderInContainer: Int,

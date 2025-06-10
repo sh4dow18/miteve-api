@@ -119,6 +119,9 @@ class SeriesRestController(private val seriesService: SeriesService) {
 @RequestMapping("\${endpoint.containers}")
 @CrossOrigin(origins = ["http://localhost:3001"])
 class ContainerRestController(private val containerService: ContainerService) {
+    @GetMapping
+    @ResponseBody
+    fun findAll() = containerService.findAll()
     @GetMapping("movies")
     @ResponseBody
     fun findAllMovieContainers() = containerService.findAllMovieContainers()

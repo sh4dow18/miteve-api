@@ -118,7 +118,7 @@ class AbstractMovieService(
             NoSuchElementExists("${movieRequest.containerId}", "Container")
         }
         // Check if it is a Movie Container
-        if (container.type != "movie") {
+        if (container.type != "movies") {
             throw BadRequest("Container ${movieRequest.containerId} is not a Movie Container")
         }
         // Update the elements to set the container element in a specific order
@@ -631,6 +631,7 @@ class AbstractSeriesService(
 // Container Service Interface where the functions to be used in
 // Spring Abstract Container Service are declared
 interface ContainerService {
+    fun findAll(): List<ContainerResponse>
     fun findAllMovieContainers(): List<MovieContainerResponse>
     fun findAllSeriesContainers(): List<SeriesContainerResponse>
     fun insert(containerRequest: ContainerRequest): ContainerResponse
@@ -644,6 +645,10 @@ class AbstractContainerService(
     @Autowired
     val containerMapper: ContainerMapper
 ): ContainerService {
+    override fun findAll(): List<ContainerResponse> {
+        // Returns all Containers as a Containers Responses List
+        return containerMapper.containersListToContainerResponsesList(containerRepository.findAll())
+    }
     override fun findAllMovieContainers(): List<MovieContainerResponse> {
         // Returns all Containers as a Movies Containers Responses List
         return containerMapper.containersListToMovieContainerResponsesList(containerRepository.findAllByType("movies"))

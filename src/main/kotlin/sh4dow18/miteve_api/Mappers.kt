@@ -124,6 +124,9 @@ interface ContainerMapper {
     fun containerToContainerResponse(
         container: Container
     ): ContainerResponse
+    fun containersListToContainerResponsesList(
+        containersList: List<Container>
+    ): List<ContainerResponse>
     fun containersListToMovieContainerResponsesList(
         containersList: List<Container>
     ): List<MovieContainerResponse>
