@@ -1,6 +1,7 @@
 package sh4dow18.miteve_api
 // Repositories Requirements
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -27,3 +28,16 @@ interface SeasonRepository: JpaRepository<Season, Long>
 // Episode Repository
 @Repository
 interface EpisodeRepository: JpaRepository<Episode, Long>
+// Container Repository
+@Repository
+interface ContainerRepository: JpaRepository<Container, Long> {
+    fun findAllByType(@Param("type") type: String): List<Container>
+    fun findContainerByNameIgnoreCase(@Param("name") name: String): Optional<Container>
+}
+// Container Element Repository
+@Repository
+interface ContainerElementRepository: JpaRepository<ContainerElement, Long> {
+    @Modifying
+    @Query("UPDATE ContainerElement ce SET ce.orderNumber = ce.orderNumber + 1 WHERE ce.container = :container AND ce.orderNumber >= :order")
+    fun shiftOrderNumberFrom(container: Container, order: Int)
+}

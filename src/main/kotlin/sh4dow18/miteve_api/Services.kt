@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import java.io.RandomAccessFile
 import java.nio.file.Paths
@@ -68,6 +69,12 @@ class AbstractMovieService(
     val movieMapper: MovieMapper,
     @Autowired
     val genreRepository: GenreRepository,
+    @Autowired
+    val containerRepository: ContainerRepository,
+    @Autowired
+    val containerElementRepository: ContainerElementRepository,
+    @Autowired
+    val containerElementMapper: ContainerElementMapper,
     @Value("\${video_path}")
     val videoPath: String? = null
 ): MovieService {
@@ -95,6 +102,7 @@ class AbstractMovieService(
         }
         return movieMapper.movieToMovieResponse(movie)
     }
+    @Transactional
     override fun insert(movieRequest: MovieRequest): MovieResponse {
         // Check if the movie already exists with the same TMDB Id
         if (movieRepository.findById(movieRequest.id).orElse(null) != null) {
@@ -106,10 +114,22 @@ class AbstractMovieService(
             val missingIds = movieRequest.genresList - genresList.map { it.id }.toSet()
             throw NoSuchElementExists(missingIds.toList().toString(), "Genres")
         }
+        val container = containerRepository.findById(movieRequest.containerId).orElseThrow {
+            NoSuchElementExists("${movieRequest.containerId}", "Container")
+        }
+        // Check if it is a Movie Container
+        if (container.type != "movies") {
+            throw BadRequest("Container ${movieRequest.containerId} is not a Movie Container")
+        }
+        // Update the elements to set the container element in a specific order
+        containerElementRepository.shiftOrderNumberFrom(container, movieRequest.orderInContainer)
         // If the movie not exists and each genre exists, create the new movie
-        val newMovie = movieMapper.movieRequestToMovie(movieRequest, genresList.toSet())
+        val newMovie = movieRepository.save(movieMapper.movieRequestToMovie(movieRequest, genresList.toSet()))
+        // Create new Container Element that will have the movie
+        val newContainerElement = containerElementMapper.movieContainerElementRequestToContainerElement(movieRequest.orderInContainer, newMovie, container)
+        containerElementRepository.save(newContainerElement)
         // Transforms the New movie to a movie Response and Returns it
-        return movieMapper.movieToMovieResponse(movieRepository.save(newMovie))
+        return movieMapper.movieToMovieResponse(newMovie)
     }
     override fun streamMovieHead(id: Long, quality: String?): ResponseEntity<Void> {
         // Define the path to the directory where the movies are stored
@@ -281,10 +301,10 @@ interface SeriesService {
     fun streamEpisode(id: Long, seasonNumber: Int, episodeNumber: Int, rangeHeader: String?, quality: String?, response: HttpServletResponse)
     fun streamSubtitles(id: Long, seasonNumber: Int, episodeNumber: Int, response: HttpServletResponse)
 }
-// Spring Abstract Movie Service
+// Spring Abstract Series Service
 @Service
 class AbstractSeriesService(
-    // Movie Service Props
+    // Series Service Props
     @Autowired
     val seriesRepository: SeriesRepository,
     @Autowired
@@ -299,6 +319,12 @@ class AbstractSeriesService(
     val seasonMapper: SeasonMapper,
     @Autowired
     val episodeMapper: EpisodeMapper,
+    @Autowired
+    val containerRepository: ContainerRepository,
+    @Autowired
+    val containerElementRepository: ContainerElementRepository,
+    @Autowired
+    val containerElementMapper: ContainerElementMapper,
     @Value("\${video_path}")
     val videoPath: String? = null
 ): SeriesService {
@@ -375,6 +401,7 @@ class AbstractSeriesService(
         }
         return episodeMapper.episodeToEpisodeMetadataResponse(episode)
     }
+    @Transactional
     override fun insert(seriesRequest: SeriesRequest): SeriesResponse {
         // Check if the series already exists with the same TMDB Id
         if (seriesRepository.findById(seriesRequest.id).orElse(null) != null) {
@@ -386,10 +413,22 @@ class AbstractSeriesService(
             val missingIds = seriesRequest.genresList - genresList.map { it.id }.toSet()
             throw NoSuchElementExists(missingIds.toList().toString(), "Genres")
         }
+        val container = containerRepository.findById(seriesRequest.containerId).orElseThrow {
+            NoSuchElementExists("${seriesRequest.containerId}", "Container")
+        }
+        // Check if it is a Series Container
+        if (container.type != "series") {
+            throw BadRequest("Container ${seriesRequest.containerId} is not a Series Container")
+        }
+        // Update the elements to set the container element in a specific order
+        containerElementRepository.shiftOrderNumberFrom(container, seriesRequest.orderInContainer)
         // If the series not exists and each genre exists, create the new series
-        val newSeries = seriesMapper.seriesRequestToSeries(seriesRequest, genresList.toSet())
+        val newSeries = seriesRepository.save(seriesMapper.seriesRequestToSeries(seriesRequest, genresList.toSet()))
+        // Create new Container Element that will have the movie
+        val newContainerElement = containerElementMapper.seriesContainerElementRequestToContainerElement(seriesRequest.orderInContainer, newSeries, container)
+        containerElementRepository.save(newContainerElement)
         // Transforms the New series to a series Response and Returns it
-        return seriesMapper.seriesToSeriesResponse(seriesRepository.save(newSeries))
+        return seriesMapper.seriesToSeriesResponse(newSeries)
     }
     override fun insertEpisodes(id: Long, seasonsList: List<SeasonRequest>): InsertEpisodesResponse {
         // Check if the series already exists with the same TMDB Id
@@ -587,5 +626,44 @@ class AbstractSeriesService(
             response.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
             process?.destroy()
         }
+    }
+}
+// Container Service Interface where the functions to be used in
+// Spring Abstract Container Service are declared
+interface ContainerService {
+    fun findAll(): List<ContainerResponse>
+    fun findAllMovieContainers(): List<MovieContainerResponse>
+    fun findAllSeriesContainers(): List<SeriesContainerResponse>
+    fun insert(containerRequest: ContainerRequest): ContainerResponse
+}
+// Spring Abstract Movie Service
+@Service
+class AbstractContainerService(
+    // Container Service Props
+    @Autowired
+    val containerRepository: ContainerRepository,
+    @Autowired
+    val containerMapper: ContainerMapper
+): ContainerService {
+    override fun findAll(): List<ContainerResponse> {
+        // Returns all Containers as a Containers Responses List
+        return containerMapper.containersListToContainerResponsesList(containerRepository.findAll())
+    }
+    override fun findAllMovieContainers(): List<MovieContainerResponse> {
+        // Returns all Containers as a Movies Containers Responses List
+        return containerMapper.containersListToMovieContainerResponsesList(containerRepository.findAllByType("movies"))
+    }
+    override fun findAllSeriesContainers(): List<SeriesContainerResponse> {
+        // Returns all Containers as a Series Containers Responses List
+        return containerMapper.containersListToSeriesContainerResponsesList(containerRepository.findAllByType("series"))
+    }
+    override fun insert(containerRequest: ContainerRequest): ContainerResponse {
+        // Check if already exists a container with the same name
+        val container = containerRepository.findContainerByNameIgnoreCase(containerRequest.name).orElse(null)
+        if (container != null) {
+            throw ElementAlreadyExists(containerRequest.name, "Container")
+        }
+        val newContainer = containerMapper.containerRequestToContainer(containerRequest)
+        return containerMapper.containerToContainerResponse(containerRepository.save(newContainer))
     }
 }

@@ -11,6 +11,7 @@ import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 import jakarta.persistence.OrderBy
 import jakarta.persistence.Table
 // Genre Entity
@@ -57,7 +58,6 @@ data class Movie(
     var cover: String,
     var background: String,
     var trailer: String,
-    var content: String,
     @ManyToMany(targetEntity = Genre::class)
     @JoinTable(
         name = "movie_genre",
@@ -67,6 +67,8 @@ data class Movie(
     var genresList: Set<Genre>,
     @ManyToMany(mappedBy = "moviesList", fetch = FetchType.LAZY, targetEntity = Profile::class)
     var profilesList: MutableSet<Profile>,
+    @OneToOne(mappedBy = "movie", targetEntity = ContainerElement::class)
+    var containerElement: ContainerElement?
 ) {
     override fun equals(other: Any?): Boolean {
         // Check if the current object is the same instance as other
@@ -109,6 +111,8 @@ data class Series(
     var seasonsList: List<Season>,
     @ManyToMany(mappedBy = "seriesList", fetch = FetchType.LAZY, targetEntity = Profile::class)
     var profilesList: MutableSet<Profile>,
+    @OneToOne(mappedBy = "series", targetEntity = ContainerElement::class)
+    var containerElement: ContainerElement?
 )
 // Season Entity
 @Entity
@@ -145,6 +149,37 @@ data class Episode(
     @ManyToOne
     @JoinColumn(name = "season_id", nullable = false, referencedColumnName = "id")
     var season: Season
+)
+// Container Entity
+@Entity
+@Table(name = "containers")
+data class Container(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long,
+    var name: String,
+    var type: String,
+    @OneToMany(mappedBy = "container", targetEntity = ContainerElement::class)
+    @OrderBy("orderNumber ASC")
+    var containerElementsList: List<ContainerElement>
+)
+// Container Element Entity
+@Entity
+@Table(name = "container_elements")
+data class ContainerElement(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long,
+    var orderNumber: Int,
+    @ManyToOne
+    @JoinColumn(name = "container_id", nullable = false, referencedColumnName = "id")
+    var container: Container,
+    @OneToOne
+    @JoinColumn(name = "movie_id", nullable = true, referencedColumnName = "id")
+    var movie: Movie?,
+    @OneToOne
+    @JoinColumn(name = "series_id", nullable = true, referencedColumnName = "id")
+    var series: Series?
 )
 // Privilege Entity
 @Entity
