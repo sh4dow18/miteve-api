@@ -52,6 +52,7 @@ class AbstractGenreService(
 interface MovieService {
     fun findAll(): List<MinimalMovieResponse>
     fun findAllRecommendationsById(id: Long): List<MinimalMovieResponse>
+    fun findAllByTitle(title: String): List<MinimalMovieResponse>
     fun findByIdMinimal(id: Long): MinimalMovieResponse
     fun findById(id: Long): MovieResponse
     fun insert(movieRequest: MovieRequest): MovieResponse
@@ -89,6 +90,9 @@ class AbstractMovieService(
         val recommendationsList = movieRepository.findByCollectionAndIdNot(movie.collection, movie.id) +
                 movieRepository.findTop10ByGenresListIdAndCollectionNot(movie.genresList.toList()[0].id, movie.collection)
         return movieMapper.moviesListToMinimalMovieResponsesList(recommendationsList)
+    }
+    override fun findAllByTitle(title: String): List<MinimalMovieResponse> {
+        return movieMapper.moviesListToMinimalMovieResponsesList(movieRepository.findByTitleContainingIgnoreCase(title))
     }
     override fun findByIdMinimal(id: Long): MinimalMovieResponse {
         val movie = movieRepository.findById(id).orElseThrow {
@@ -289,6 +293,7 @@ class AbstractMovieService(
 interface SeriesService {
     fun findAll(): List<MinimalSeriesResponse>
     fun findAllRecommendationsById(id: Long): List<MinimalSeriesResponse>
+    fun findAllByTitle(title: String): List<MinimalSeriesResponse>
     fun findByIdMinimal(id: Long): MinimalSeriesResponse
     fun findById(id: Long): SeriesResponse
     fun findSeasonByNumber(id: Long, seasonNumber: Int): SeasonResponse
@@ -338,6 +343,9 @@ class AbstractSeriesService(
         }
         val recommendationsList = genreRepository.findSeriesByGenreNameIgnoreCaseAndIdNot(series.genresList.toList()[0].name, series.id)
         return seriesMapper.seriesListToMinimalSeriesResponsesList(recommendationsList.toList())
+    }
+    override fun findAllByTitle(title: String): List<MinimalSeriesResponse> {
+        return seriesMapper.seriesListToMinimalSeriesResponsesList(seriesRepository.findByTitleContainingIgnoreCase(title))
     }
     override fun findByIdMinimal(id: Long): MinimalSeriesResponse {
         val series = seriesRepository.findById(id).orElseThrow {

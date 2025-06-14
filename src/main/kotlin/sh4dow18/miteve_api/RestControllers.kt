@@ -40,6 +40,9 @@ class MovieRestController(private val movieService: MovieService) {
     @GetMapping("recommendations/{id}")
     @ResponseBody
     fun findAllRecommendationsById(@PathVariable id: Long) = movieService.findAllRecommendationsById(id)
+    @GetMapping("title/{title}")
+    @ResponseBody
+    fun findAllByTitle(@PathVariable title: String) = movieService.findAllByTitle(title)
     @GetMapping("minimal/{id}")
     @ResponseBody
     fun findByIdMinimal(@PathVariable id: Long) = movieService.findByIdMinimal(id)
@@ -70,6 +73,9 @@ class SeriesRestController(private val seriesService: SeriesService) {
     @GetMapping("recommendations/{id}")
     @ResponseBody
     fun findAllRecommendationsById(@PathVariable id: Long) = seriesService.findAllRecommendationsById(id)
+    @GetMapping("title/{title}")
+    @ResponseBody
+    fun findAllByTitle(@PathVariable title: String) = seriesService.findAllByTitle(title)
     @GetMapping("minimal/{id}")
     @ResponseBody
     fun findByIdMinimal(@PathVariable id: Long) = seriesService.findByIdMinimal(id)

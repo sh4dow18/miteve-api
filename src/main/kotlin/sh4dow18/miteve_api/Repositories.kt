@@ -18,10 +18,13 @@ interface GenreRepository: JpaRepository<Genre, Long> {
 interface MovieRepository: JpaRepository<Movie, Long> {
     fun findByCollectionAndIdNot(@Param("collection") collection: String?, @Param("id") id: Long): List<Movie>
     fun findTop10ByGenresListIdAndCollectionNot(@Param("id") id: Long, @Param("collection") collection: String?): List<Movie>
+    fun findByTitleContainingIgnoreCase(@Param("title") title: String): List<Movie>
 }
 // Series Repository
 @Repository
-interface SeriesRepository: JpaRepository<Series, Long>
+interface SeriesRepository: JpaRepository<Series, Long> {
+    fun findByTitleContainingIgnoreCase(@Param("title") title: String): List<Series>
+}
 // Season Repository
 @Repository
 interface SeasonRepository: JpaRepository<Season, Long>
