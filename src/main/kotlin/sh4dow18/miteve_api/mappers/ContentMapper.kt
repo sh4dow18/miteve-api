@@ -4,6 +4,7 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.ReportingPolicy
 import sh4dow18.miteve_api.dtos.content.ContentResponse
+import sh4dow18.miteve_api.dtos.content.MiniContentResponse
 import sh4dow18.miteve_api.entities.Content
 
 // Content Mapper
@@ -16,4 +17,7 @@ interface ContentMapper {
     fun contentsListToContentResponsesList(
         contentsList: List<Content>
     ): List<ContentResponse>
+    fun contentsListToMiniContentResponsesList(
+        contentsList: List<Content>
+    ): List<MiniContentResponse>
 }

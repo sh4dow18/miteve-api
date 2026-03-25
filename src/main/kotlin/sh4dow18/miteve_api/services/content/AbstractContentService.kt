@@ -3,6 +3,7 @@ package sh4dow18.miteve_api.services.content
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import sh4dow18.miteve_api.dtos.content.ContentResponse
+import sh4dow18.miteve_api.dtos.content.MiniContentResponse
 import sh4dow18.miteve_api.errors.NoExists
 import sh4dow18.miteve_api.mappers.ContentMapper
 import sh4dow18.miteve_api.repositories.ContentRepository
@@ -20,5 +21,8 @@ class AbstractContentService(
             NoExists(id, "Content")
         }
         return contentMapper.contentToContentResponse(content)
+    }
+    override fun findRecentContent(): List<MiniContentResponse> {
+        return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findTop10ByOrderByCreatedDateDesc())
     }
 }

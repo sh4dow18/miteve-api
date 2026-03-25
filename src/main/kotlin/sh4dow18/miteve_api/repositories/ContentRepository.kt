@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository
 import sh4dow18.miteve_api.entities.Content
 
 @Repository
-interface ContentRepository: JpaRepository<Content, String>
+interface ContentRepository: JpaRepository<Content, String> {
+    fun findTop10ByOrderByCreatedDateDesc(): List<Content>
+}
