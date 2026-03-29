@@ -19,19 +19,19 @@ class AbstractEpisodeService(
 ): EpisodeService {
     override fun findNextById(id: String): NextEpisodeResponse {
         val episodeInformation = id.split("-")
-        if (episodeInformation.size != 3) {
+        if (episodeInformation.size < 3) {
             throw BadRequest("Bad Episode Information Data")
         }
-        val tvShow = episodeInformation[0]
+        val tvShow = episodeInformation.subList(0, episodeInformation.size - 2).joinToString("-")
         if (tvShow.toIntOrNull() != null) {
             throw BadRequest("Tv Show has invalid data")
         }
         val season = episodeInformation[episodeInformation.size - 2].toIntOrNull() ?: throw BadRequest("Season has invalid data")
         val episode = episodeInformation[episodeInformation.size - 1].toIntOrNull() ?: throw BadRequest("Episode has invalid data")
-        var nextEpisodeId = tvShow + season + (episode + 1)
+        var nextEpisodeId = "${tvShow}-${season}-${episode + 1}"
         var nextEpisode = episodeRepository.findById(nextEpisodeId).orElse(null)
         if (nextEpisode == null) {
-            nextEpisodeId = tvShow + (season + 1) + 1
+            nextEpisodeId = "${tvShow}-${season + 1}-1"
             nextEpisode = episodeRepository.findById(nextEpisodeId).orElseThrow {
                 NoExists(nextEpisodeId, "Next Episode")
             }
