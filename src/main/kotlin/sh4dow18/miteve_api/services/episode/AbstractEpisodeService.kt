@@ -23,9 +23,6 @@ class AbstractEpisodeService(
             throw BadRequest("Bad Episode Information Data")
         }
         val tvShow = episodeInformation.subList(0, episodeInformation.size - 2).joinToString("-")
-        if (tvShow.toIntOrNull() != null) {
-            throw BadRequest("Tv Show has invalid data")
-        }
         val season = episodeInformation[episodeInformation.size - 2].toIntOrNull() ?: throw BadRequest("Season has invalid data")
         val episode = episodeInformation[episodeInformation.size - 1].toIntOrNull() ?: throw BadRequest("Episode has invalid data")
         var nextEpisodeId = "${tvShow}-${season}-${episode + 1}"
