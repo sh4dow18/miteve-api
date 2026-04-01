@@ -23,6 +23,9 @@ class AbstractContentService(
         return contentMapper.contentToContentResponse(content)
     }
     override fun findRecentContent(): List<MiniContentResponse> {
-        return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findTop10ByOrderByCreatedDateDesc())
+        return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findTop10ByComingSoonFalseOrderByCreatedDateDesc())
+    }
+    override fun findComingSoon(): List<MiniContentResponse> {
+        return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findByComingSoonTrueOrderByCreatedDateDesc())
     }
 }

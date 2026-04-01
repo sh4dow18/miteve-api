@@ -8,4 +8,5 @@ import sh4dow18.miteve_api.dtos.content.MiniContentResponse
 interface ContentService {
     fun findById(id: String): ContentResponse
     fun findRecentContent(): List<MiniContentResponse>
+    fun findComingSoon(): List<MiniContentResponse>
 }

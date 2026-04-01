@@ -17,4 +17,7 @@ class ContentController(private val contentService: ContentService) {
     @GetMapping("recent")
     @ResponseBody
     fun findRecentContent() = contentService.findRecentContent()
+    @GetMapping("soon")
+    @ResponseBody
+    fun findComingSoon() = contentService.findComingSoon()
 }

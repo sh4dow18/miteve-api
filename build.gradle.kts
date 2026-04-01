@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "sh4dow18"
-version = "0.0.2"
+version = "0.0.3"
 description = "Miteve API"
 
 java {
