@@ -11,7 +11,7 @@ import sh4dow18.miteve_api.services.season.SeasonService
 // Container Rest Controller
 @RestController
 @RequestMapping("\${endpoint.seasons}")
-@CrossOrigin(origins = ["http://localhost:3000"])
+@CrossOrigin(origins = ["http://localhost:3000", "https://miteve.vercel.app"])
 class SeasonController(private val seasonService: SeasonService) {
     @GetMapping("{id}/episodes")
     @ResponseBody

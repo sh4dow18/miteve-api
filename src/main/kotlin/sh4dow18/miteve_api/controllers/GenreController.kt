@@ -16,7 +16,7 @@ import sh4dow18.miteve_api.services.genre.GenreService
 // Container Rest Controller
 @RestController
 @RequestMapping("\${endpoint.genres}")
-@CrossOrigin(origins = ["http://localhost:3000"])
+@CrossOrigin(origins = ["http://localhost:3000", "https://miteve.vercel.app"])
 class GenreController(private val genreService: GenreService) {
     @GetMapping
     @ResponseBody

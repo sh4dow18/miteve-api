@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("\${endpoint.utils}")
-@CrossOrigin(origins = ["http://localhost:3000"])
+@CrossOrigin(origins = ["http://localhost:3000", "https://miteve.vercel.app"])
 class UtilsController {
     @RequestMapping("health", method = [RequestMethod.HEAD])
     fun health() {}

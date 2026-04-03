@@ -3,13 +3,12 @@ package sh4dow18.miteve_api.controllers
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import sh4dow18.miteve_api.dtos.container.ContainerRequest
-import sh4dow18.miteve_api.dtos.content.ContentRequest
 import sh4dow18.miteve_api.services.container.ContainerService
 
 // Container Rest Controller
 @RestController
 @RequestMapping("\${endpoint.containers}")
-@CrossOrigin(origins = ["http://localhost:3000"])
+@CrossOrigin(origins = ["http://localhost:3000", "https://miteve.vercel.app"])
 class ContainerController(private val containerService: ContainerService) {
     @GetMapping
     @ResponseBody

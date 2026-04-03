@@ -15,7 +15,7 @@ import sh4dow18.miteve_api.services.episode.EpisodeService
 // Container Rest Controller
 @RestController
 @RequestMapping("\${endpoint.episodes}")
-@CrossOrigin(origins = ["http://localhost:3000"])
+@CrossOrigin(origins = ["http://localhost:3000", "https://miteve.vercel.app"])
 class EpisodeController(private val episodeService: EpisodeService) {
     @GetMapping("next/{id}")
     @ResponseBody

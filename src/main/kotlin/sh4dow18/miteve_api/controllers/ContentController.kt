@@ -17,7 +17,7 @@ import sh4dow18.miteve_api.services.content.ContentService
 // Container Rest Controller
 @RestController
 @RequestMapping("\${endpoint.contents}")
-@CrossOrigin(origins = ["http://localhost:3000"])
+@CrossOrigin(origins = ["http://localhost:3000", "https://miteve.vercel.app"])
 class ContentController(private val contentService: ContentService) {
     @GetMapping
     @ResponseBody
