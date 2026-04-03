@@ -18,6 +18,7 @@ import java.time.ZonedDateTime
 data class Content(
     @Id
     var id: String,
+    var tmdbId: Long,
     var title: String,
     var year: Short,
     var tagline: String?,

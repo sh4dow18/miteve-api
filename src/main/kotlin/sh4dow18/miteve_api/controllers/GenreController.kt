@@ -4,26 +4,27 @@ import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
-import sh4dow18.miteve_api.dtos.episode.FullEpisodeRequest
-import sh4dow18.miteve_api.services.episode.EpisodeService
+import sh4dow18.miteve_api.dtos.genre.GenreRequest
+import sh4dow18.miteve_api.services.genre.GenreService
 
 // Container Rest Controller
 @RestController
-@RequestMapping("\${endpoint.episodes}")
+@RequestMapping("\${endpoint.genres}")
 @CrossOrigin(origins = ["http://localhost:3000"])
-class EpisodeController(private val episodeService: EpisodeService) {
-    @GetMapping("next/{id}")
+class GenreController(private val genreService: GenreService) {
+    @GetMapping
     @ResponseBody
-    fun findNextById(@PathVariable id: String) = episodeService.findNextById(id)
-    @GetMapping("metadata/{id}")
+    fun findAll() = genreService.findAll()
+    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
-    fun findMetadataById(@PathVariable id: String) = episodeService.findMetadataById(id)
+    fun insert(@RequestBody genreRequest: GenreRequest) = genreService.insert(genreRequest)
     @PutMapping("{id}", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
-    fun update(@PathVariable id: String, @RequestBody fullEpisodeRequest: FullEpisodeRequest) = episodeService.update(id, fullEpisodeRequest)
+    fun update(@PathVariable id: Long, @RequestBody genreRequest: GenreRequest) = genreService.update(id, genreRequest)
 }

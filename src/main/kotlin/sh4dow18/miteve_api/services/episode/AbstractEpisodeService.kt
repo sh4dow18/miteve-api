@@ -2,8 +2,8 @@ package sh4dow18.miteve_api.services.episode
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import sh4dow18.miteve_api.dtos.episode.EpisodeMetadataResponse
-import sh4dow18.miteve_api.dtos.episode.NextEpisodeResponse
+import org.springframework.transaction.annotation.Transactional
+import sh4dow18.miteve_api.dtos.episode.*
 import sh4dow18.miteve_api.errors.BadRequest
 import sh4dow18.miteve_api.errors.NoExists
 import sh4dow18.miteve_api.mappers.EpisodeMapper
@@ -40,5 +40,20 @@ class AbstractEpisodeService(
             NoExists(id, "Episode")
         }
         return episodeMapper.episodeToEpisodeMetadataResponse(episode)
+    }
+    @Transactional
+    override fun update(id: String, fullEpisodeRequest: FullEpisodeRequest): FullEpisodeResponse {
+        val episode = episodeRepository.findById(id).orElseThrow {
+            NoExists(id, "Episode")
+        }
+        episode.episodeNumber = fullEpisodeRequest.episodeNumber
+        episode.title = fullEpisodeRequest.title
+        episode.description = fullEpisodeRequest.description
+        episode.beginSummary = fullEpisodeRequest.beginSummary
+        episode.endSummary = fullEpisodeRequest.endSummary
+        episode.beginIntro = fullEpisodeRequest.beginIntro
+        episode.endIntro = fullEpisodeRequest.endIntro
+        episode.beginCredits = fullEpisodeRequest.beginCredits
+        return episodeMapper.episodeToFullEpisodeResponse(episodeRepository.save(episode))
     }
 }

@@ -5,9 +5,11 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import sh4dow18.miteve_api.entities.Container
+import java.util.Optional
 
 @Repository
-interface ContainerRepository: JpaRepository<Container, String> {
+interface ContainerRepository: JpaRepository<Container, Long> {
+    fun findByNameIgnoringCase(@Param("name") name: String): Optional<Container>
     @Query("""
     SELECT c FROM Container c
     WHERE NOT EXISTS (
