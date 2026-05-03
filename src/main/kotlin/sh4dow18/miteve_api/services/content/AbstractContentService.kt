@@ -12,6 +12,7 @@ import sh4dow18.miteve_api.dtos.season.MiniSeasonResponse
 import sh4dow18.miteve_api.dtos.season.SeasonRequest
 import sh4dow18.miteve_api.errors.AlreadyExists
 import sh4dow18.miteve_api.errors.NoExists
+import sh4dow18.miteve_api.errors.BadRequest
 import sh4dow18.miteve_api.mappers.ContainerElementMapper
 import sh4dow18.miteve_api.mappers.ContentMapper
 import sh4dow18.miteve_api.mappers.EpisodeMapper
@@ -104,6 +105,9 @@ class AbstractContentService(
         val content = contentRepository.findById(id).orElseThrow {
             NoExists(id, "Content")
         }
+        if (seasonsList.isEmpty()) {
+            throw BadRequest("Seasons List cannot be zero")
+        }
         seasonsList.forEach { seasonRequest ->
             // Check if exists already the season submitted
             val existingSeason = content.seasonsList.find { it.seasonNumber == seasonRequest.seasonNumber }
@@ -147,6 +151,8 @@ class AbstractContentService(
             content.containerElement!!.position = contentRequest.containerPosition
             content.containerElement!!.container = container
         }
+        content.createdDate = existingContentData.createdDate
+        content.tmdbId = existingContentData.tmdbId
         return contentMapper.contentToContentResponse(contentRepository.save(content))
     }
 }
