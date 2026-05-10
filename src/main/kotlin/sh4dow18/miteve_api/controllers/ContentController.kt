@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import sh4dow18.miteve_api.dtos.content.ContentRequest
+import sh4dow18.miteve_api.dtos.content.MiniContentResponse
 import sh4dow18.miteve_api.dtos.season.SeasonRequest
 import sh4dow18.miteve_api.services.content.ContentService
 
@@ -34,6 +35,8 @@ class ContentController(private val contentService: ContentService) {
     @GetMapping("{id}/seasons")
     @ResponseBody
     fun findSeasonsById(@PathVariable id: String) = contentService.findSeasonsById(id)
+    @GetMapping("like/{title}")
+    fun findByTitle(@PathVariable title: String) = contentService.findByTitle(title)
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun insert(@RequestBody contentRequest: ContentRequest) = contentService.insert(contentRequest)

@@ -16,6 +16,7 @@ interface ContentService {
     fun findRecentContent(): List<MiniContentResponse>
     fun findComingSoon(): List<MiniContentResponse>
     fun findSeasonsById(id: String): List<MiniSeasonResponse>
+    fun findByTitle(title: String): List<MiniContentResponse>
     fun insert(contentRequest: ContentRequest): ContentResponse
     fun insertEpisodes(id: String, seasonsList: List<SeasonRequest>): InsertEpisodesResponse
     fun update(id: String, contentRequest: ContentRequest): ContentResponse

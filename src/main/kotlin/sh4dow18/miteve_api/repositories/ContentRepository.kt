@@ -1,6 +1,7 @@
 package sh4dow18.miteve_api.repositories
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import sh4dow18.miteve_api.entities.Content
 
@@ -8,4 +9,5 @@ import sh4dow18.miteve_api.entities.Content
 interface ContentRepository: JpaRepository<Content, String> {
     fun findTop10ByComingSoonFalseOrderByCreatedDateDesc(): List<Content>
     fun findByComingSoonTrueOrderByCreatedDateDesc(): List<Content>
+    fun findByTitleContainingIgnoreCase(@Param("title") title: String): List<Content>
 }

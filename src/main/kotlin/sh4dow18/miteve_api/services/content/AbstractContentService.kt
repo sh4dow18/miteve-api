@@ -77,6 +77,9 @@ class AbstractContentService(
         }
         return seasonMapper.seasonsListToMiniSeasonResponsesList(content.seasonsList)
     }
+    override fun findByTitle(title: String): List<MiniContentResponse> {
+        return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findByTitleContainingIgnoreCase(title))
+    }
     @Transactional
     override fun insert(contentRequest: ContentRequest): ContentResponse {
         val slug = toSlug(contentRequest.title)
