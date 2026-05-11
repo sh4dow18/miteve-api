@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 import sh4dow18.miteve_api.dtos.profile.ProfileRequest
 import sh4dow18.miteve_api.dtos.user.RegisterUserResponse
 import sh4dow18.miteve_api.dtos.user.UserRequest
+import sh4dow18.miteve_api.dtos.user.UserResponse
 import sh4dow18.miteve_api.errors.AlreadyExists
 import sh4dow18.miteve_api.errors.NoExists
 import sh4dow18.miteve_api.mappers.ProfileMapper
@@ -41,5 +42,11 @@ class AbstractUserService(
         val user = userRepository.save(userMapper.userRequestToUser(userRequest, role, passwordEncoder(userRequest.password)))
         profileRepository.save(profileMapper.profileRequestToProfile(ProfileRequest(userRequest.name), user))
         return userMapper.userToRegisterUserResponse(user)
+    }
+    override fun findById(id: Long): UserResponse {
+        val user = userRepository.findById(id).orElseThrow {
+            NoExists("$id", "User")
+        }
+        return userMapper.userToUserResponse(user)
     }
 }

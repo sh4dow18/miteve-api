@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository
 import sh4dow18.miteve_api.entities.Profile
 
 @Repository
-interface ProfileRepository: JpaRepository<Profile, Long>
+interface ProfileRepository: JpaRepository<Profile, Long> {
+    fun findAllByUserId(userId: Long): List<Profile>
+}
