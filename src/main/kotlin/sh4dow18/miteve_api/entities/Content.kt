@@ -48,6 +48,8 @@ data class Content(
     var type: ContentType,
     @OneToMany(mappedBy = "content", targetEntity = Season::class)
     var seasonsList: List<Season>,
+    @OneToMany(mappedBy = "content", targetEntity = ContinueWatching::class)
+    var continueWatchingList: List<ContinueWatching>,
 ) {
     override fun equals(other: Any?): Boolean {
         // Check if the current object is the same instance as other

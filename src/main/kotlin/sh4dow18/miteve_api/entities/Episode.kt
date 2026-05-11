@@ -1,11 +1,6 @@
 package sh4dow18.miteve_api.entities
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 // Episode Entity
 @Entity
@@ -25,5 +20,7 @@ data class Episode(
     var beginCredits: Long?,
     @ManyToOne
     @JoinColumn(name = "season_id", nullable = false, referencedColumnName = "id")
-    var season: Season
+    var season: Season,
+    @OneToMany(mappedBy = "episode", targetEntity = ContinueWatching::class)
+    var continueWatchingList: List<ContinueWatching>,
 )
