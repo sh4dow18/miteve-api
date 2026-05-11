@@ -1,6 +1,12 @@
 package sh4dow18.miteve_api.entities
 
-import jakarta.persistence.*
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.ManyToMany
+import jakarta.persistence.Table
 
 @Entity
 @Table(name = "privileges")
@@ -8,6 +14,7 @@ class Privilege(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long,
+    var slug: String,
     var name: String,
     @ManyToMany(mappedBy = "privilegesList", fetch = FetchType.LAZY, targetEntity = Role::class)
     var rolesList: Set<Role>
