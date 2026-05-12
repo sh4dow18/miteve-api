@@ -2,6 +2,7 @@ package sh4dow18.miteve_api.services.profile
 
 import sh4dow18.miteve_api.dtos.continue_watching.ContinueWatchingResponse
 import sh4dow18.miteve_api.dtos.profile.FullProfileResponse
+import sh4dow18.miteve_api.dtos.profile.ProfileRequest
 import sh4dow18.miteve_api.dtos.profile.ProfileResponse
 
 // Profile Service Interface where the functions to be used in
@@ -11,5 +12,6 @@ interface ProfileService {
     fun findById(id: Long): FullProfileResponse
     fun findMainProfileByUserId(userId: Long): FullProfileResponse
     fun findContinueWatchingListByProfileId(profileId: Long): List<ContinueWatchingResponse>
+    fun insert(userId: Long, profileRequest: ProfileRequest): ProfileResponse
 }
 

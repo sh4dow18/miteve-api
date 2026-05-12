@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import sh4dow18.miteve_api.dtos.continue_watching.ContinueWatchingResponse
 import sh4dow18.miteve_api.dtos.profile.FullProfileResponse
+import sh4dow18.miteve_api.dtos.profile.ProfileRequest
 import sh4dow18.miteve_api.dtos.profile.ProfileResponse
+import sh4dow18.miteve_api.errors.BadRequest
 import sh4dow18.miteve_api.errors.NoExists
 import sh4dow18.miteve_api.mappers.ContinueWatchingMapper
 import sh4dow18.miteve_api.mappers.ProfileMapper
@@ -54,6 +56,16 @@ class AbstractProfileService(
         return continueWatchingMapper.continueWatchingListToContinueWatchingResponsesList(
             profile.continueWatchingList
         )
+    }
+    override fun insert(userId: Long, profileRequest: ProfileRequest): ProfileResponse {
+        val user = userRepository.findById(userId).orElseThrow {
+            NoExists("$userId", "User")
+        }
+        if (profileRepository.countByUserId(userId) >= 5) {
+            throw BadRequest("The user with id $userId has reached the maximum limit of 5 profiles")
+        }
+        val profile = profileRepository.save(profileMapper.profileRequestToProfile(profileRequest, user))
+        return profileMapper.profileToProfileResponse(profile)
     }
 }
 

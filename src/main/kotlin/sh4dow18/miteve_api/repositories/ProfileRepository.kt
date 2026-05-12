@@ -7,4 +7,5 @@ import sh4dow18.miteve_api.entities.Profile
 @Repository
 interface ProfileRepository: JpaRepository<Profile, Long> {
     fun findAllByUserId(userId: Long): List<Profile>
+    fun countByUserId(userId: Long): Long
 }
