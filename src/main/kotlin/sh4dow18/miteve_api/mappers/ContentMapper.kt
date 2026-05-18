@@ -19,6 +19,7 @@ interface ContentMapper {
     @Mapping(target = "genresList", expression = "java(genresList)")
     @Mapping(target = "type", expression = "java(type)")
     @Mapping(target = "seasonsList", expression = EMPTY_LIST)
+    @Mapping(target = "continueWatchingList", expression = EMPTY_LIST)
     // Set added at right now
     @Mapping(target = "createdDate", expression = "java(java.time.ZonedDateTime.now())")
     fun contentRequestToContent(

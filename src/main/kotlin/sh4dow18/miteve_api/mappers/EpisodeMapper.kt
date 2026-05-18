@@ -13,6 +13,7 @@ interface EpisodeMapper {
     @Mapping(target = "id", expression = "java(id)")
     // Set season as the season sent
     @Mapping(target = "season", expression = "java(season)")
+    @Mapping(target = "continueWatchingList", expression = EMPTY_LIST)
     fun episodeRequestToEpisode(
         id: String,
         episodeRequest: EpisodeRequest,
