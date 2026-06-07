@@ -1,5 +1,6 @@
 package sh4dow18.miteve_api.services.content
 
+import org.springframework.data.domain.Page
 import sh4dow18.miteve_api.dtos.content.ContentRequest
 import sh4dow18.miteve_api.dtos.content.ContentResponse
 import sh4dow18.miteve_api.dtos.content.MiniContentResponse
@@ -17,6 +18,11 @@ interface ContentService {
     fun findComingSoon(): List<MiniContentResponse>
     fun findSeasonsById(id: String): List<MiniSeasonResponse>
     fun findByTitle(title: String): List<MiniContentResponse>
+    fun findByGenre(genreId: Long, page: Int, size: Int): Page<MiniContentResponse>
+    fun findSimilarContent(id: String, page: Int, size: Int): Page<MiniContentResponse>
+    fun findRecommendedContent(profileId: Long): List<MiniContentResponse>
+    fun findWatchAgain(profileId: Long): List<MiniContentResponse>
+    fun findTopWatched(): List<MiniContentResponse>
     fun insert(contentRequest: ContentRequest): ContentResponse
     fun insertEpisodes(id: String, seasonsList: List<SeasonRequest>): InsertEpisodesResponse
     fun update(id: String, contentRequest: ContentRequest): ContentResponse

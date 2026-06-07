@@ -14,6 +14,7 @@ import sh4dow18.miteve_api.entities.User
 interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "profilesList", expression = EMPTY_LIST)
+    @Mapping(target = "bugReportsList", expression = EMPTY_LIST)
     @Mapping(target = "role", expression = "java(role)")
     @Mapping(target = "password", expression = "java(encodedPassword)")
     fun userRequestToUser(
@@ -27,4 +28,5 @@ interface UserMapper {
     fun userToUserResponse(
         user: User
     ): UserResponse
+    fun usersListToUserResponsesList(users: List<User>): List<UserResponse>
 }

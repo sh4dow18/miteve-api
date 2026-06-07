@@ -30,6 +30,7 @@ data class Content(
     var background: String,
     var trailer: String,
     var trailerDuration: Int,
+    var endTime: Int?,
     var comingSoon: Boolean,
     var createdDate: ZonedDateTime,
     @Column(length = 500)
@@ -50,6 +51,8 @@ data class Content(
     var seasonsList: List<Season>,
     @OneToMany(mappedBy = "content", targetEntity = ContinueWatching::class)
     var continueWatchingList: List<ContinueWatching>,
+    @OneToMany(mappedBy = "content", targetEntity = Comment::class)
+    var commentsList: List<Comment>,
 ) {
     override fun equals(other: Any?): Boolean {
         // Check if the current object is the same instance as other

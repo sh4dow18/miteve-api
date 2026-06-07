@@ -12,6 +12,8 @@ class User(
     var password: String,
     @OneToMany(mappedBy = "user", targetEntity = Profile::class)
     var profilesList: List<Profile>,
+    @OneToMany(mappedBy = "user", targetEntity = BugReport::class)
+    var bugReportsList: List<BugReport>,
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false, referencedColumnName = "id")
     var role: Role

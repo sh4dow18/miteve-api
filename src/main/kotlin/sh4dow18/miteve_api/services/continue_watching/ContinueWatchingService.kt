@@ -9,5 +9,6 @@ import sh4dow18.miteve_api.dtos.continue_watching.UpdateContinueWatchingTimeRequ
 interface ContinueWatchingService {
     fun updateTime(id: Long, request: UpdateContinueWatchingTimeRequest): ContinueWatchingResponse
     fun addOrUpdate(request: AddContinueWatchingRequest): ContinueWatchingResponse
+    fun delete(id: Long)
 }
 

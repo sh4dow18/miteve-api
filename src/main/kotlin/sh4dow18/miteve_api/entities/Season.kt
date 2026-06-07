@@ -1,5 +1,6 @@
 package sh4dow18.miteve_api.entities
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
@@ -15,6 +16,8 @@ data class Season(
     @Id
     var id: String,
     var seasonNumber: Int,
+    @Column(columnDefinition = "boolean default false")
+    var comingSoon: Boolean = false,
     @ManyToOne
     @JoinColumn(name = "content_id", nullable = false, referencedColumnName = "id")
     var content: Content,

@@ -20,6 +20,7 @@ interface ContentMapper {
     @Mapping(target = "type", expression = "java(type)")
     @Mapping(target = "seasonsList", expression = EMPTY_LIST)
     @Mapping(target = "continueWatchingList", expression = EMPTY_LIST)
+    @Mapping(target = "commentsList", expression = EMPTY_LIST)
     // Set added at right now
     @Mapping(target = "createdDate", expression = "java(java.time.ZonedDateTime.now())")
     fun contentRequestToContent(
@@ -31,6 +32,7 @@ interface ContentMapper {
     @Mapping(target = "type", expression = "java(content.getType().getName())")
     @Mapping(target = "position", expression = "java(content.getContainerElement() != null ? content.getContainerElement().getPosition() : null)")
     @Mapping(target = "container", source = "containerElement.container")
+    @Mapping(target = "rating", expression = "java(content.getCommentsList().isEmpty() ? content.getRating() : (content.getCommentsList().stream().reduce(content.getRating(), (acc, c) -> acc + c.getRating(), Float::sum)) / (content.getCommentsList().size() + 1))")
     fun contentToContentResponse(
         content: Content
     ): ContentResponse
@@ -45,6 +47,9 @@ interface ContentMapper {
     fun contentsListToMiniContentResponsesList(
         contentsList: List<Content>
     ): List<MiniContentResponse>
+    fun contentToMiniContentResponse(
+        content: Content
+    ): MiniContentResponse
     fun contentsListToShortContentResponsesList(
         contentsList: List<Content>
     ): List<ShortContentResponse>

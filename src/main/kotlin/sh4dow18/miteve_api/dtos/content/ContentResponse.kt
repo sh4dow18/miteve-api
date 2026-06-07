@@ -18,6 +18,7 @@ data class ContentResponse(
     var background: String,
     var trailer: String,
     var trailerDuration: Int,
+    var endTime: Int?,
     var comingSoon: Boolean,
     var createdDate: ZonedDateTime,
     var note: String?,

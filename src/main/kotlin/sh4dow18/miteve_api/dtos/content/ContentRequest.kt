@@ -12,6 +12,7 @@ data class ContentRequest(
     var background: String,
     var trailer: String,
     var trailerDuration: Int,
+    var endTime: Int?,
     var comingSoon: Boolean,
     var note: String?,
     var typeId: Long,

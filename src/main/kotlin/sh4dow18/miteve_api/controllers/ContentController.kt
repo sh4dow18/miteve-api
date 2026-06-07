@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import sh4dow18.miteve_api.dtos.content.ContentRequest
@@ -37,6 +38,29 @@ class ContentController(private val contentService: ContentService) {
     fun findSeasonsById(@PathVariable id: String) = contentService.findSeasonsById(id)
     @GetMapping("like/{title}")
     fun findByTitle(@PathVariable title: String) = contentService.findByTitle(title)
+    @GetMapping("genre/{genreId}")
+    @ResponseBody
+    fun findByGenre(
+        @PathVariable genreId: Long,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "10") size: Int
+    ) = contentService.findByGenre(genreId, page, size)
+    @GetMapping("{id}/similar")
+    @ResponseBody
+    fun findSimilarContent(
+        @PathVariable id: String,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "15") size: Int
+    ) = contentService.findSimilarContent(id, page, size)
+    @GetMapping("recommendations/{profileId}")
+    @ResponseBody
+    fun findRecommendedContent(@PathVariable profileId: Long) = contentService.findRecommendedContent(profileId)
+    @GetMapping("watch-again/{profileId}")
+    @ResponseBody
+    fun findWatchAgain(@PathVariable profileId: Long) = contentService.findWatchAgain(profileId)
+    @GetMapping("top-watched")
+    @ResponseBody
+    fun findTopWatched() = contentService.findTopWatched()
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun insert(@RequestBody contentRequest: ContentRequest) = contentService.insert(contentRequest)

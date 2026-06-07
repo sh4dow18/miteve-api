@@ -1,6 +1,8 @@
 package sh4dow18.miteve_api.services.content
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sh4dow18.miteve_api.dtos.content.ContentRequest
@@ -44,7 +46,11 @@ class AbstractContentService(
     @Autowired
     val seasonMapper: SeasonMapper,
     @Autowired
-    val episodeMapper: EpisodeMapper
+    val episodeMapper: EpisodeMapper,
+    @Autowired
+    val profileRepository: ProfileRepository,
+    @Autowired
+    val historyRepository: HistoryRepository
 ): ContentService {
     fun toSlug(input: String): String {
         val normalized = Normalizer.normalize(input, Normalizer.Form.NFD)
@@ -69,7 +75,7 @@ class AbstractContentService(
         return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findTop10ByComingSoonFalseOrderByCreatedDateDesc())
     }
     override fun findComingSoon(): List<MiniContentResponse> {
-        return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findByComingSoonTrueOrderByCreatedDateDesc())
+        return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findComingSoon())
     }
     override fun findSeasonsById(id: String): List<MiniSeasonResponse> {
         val content = contentRepository.findById(id).orElseThrow {
@@ -79,6 +85,59 @@ class AbstractContentService(
     }
     override fun findByTitle(title: String): List<MiniContentResponse> {
         return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findByTitleContainingIgnoreCase(title))
+    }
+    override fun findSimilarContent(id: String, page: Int, size: Int): Page<MiniContentResponse> {
+        val content = contentRepository.findById(id).orElseThrow {
+            NoExists(id, "Content")
+        }
+        val genreIds = content.genresList.map { it.id }.toSet()
+        val titleKeyword = content.title.split(" ").firstOrNull { it.length > 3 } ?: content.title
+        val pageable = PageRequest.of(page, size)
+        return contentRepository.findSimilarContent(id, genreIds, titleKeyword, pageable)
+            .map { contentMapper.contentToMiniContentResponse(it) }
+    }
+    override fun findTopWatched(): List<MiniContentResponse> {
+        val pageable = PageRequest.of(0, 10)
+        return contentMapper.contentsListToMiniContentResponsesList(
+            historyRepository.findTopWatchedContents(pageable)
+        )
+    }
+    override fun findWatchAgain(profileId: Long): List<MiniContentResponse> {
+        profileRepository.findById(profileId).orElseThrow {
+            NoExists("$profileId", "Profile")
+        }
+        val history = historyRepository.findTop15ByProfileIdOrderByViewedAtAsc(profileId)
+        return contentMapper.contentsListToMiniContentResponsesList(
+            history.map { it.content }
+        )
+    }
+    override fun findRecommendedContent(profileId: Long): List<MiniContentResponse> {
+        profileRepository.findById(profileId).orElseThrow {
+            NoExists("$profileId", "Profile")
+        }
+        val history = historyRepository.findAllByProfileId(profileId)
+        if (history.isEmpty()) {
+            return contentMapper.contentsListToMiniContentResponsesList(
+                contentRepository.findTop10ByComingSoonFalseOrderByCreatedDateDesc()
+            )
+        }
+        val watchedIds = history.map { it.content.id }.toSet()
+        val genreIds = history.flatMap { it.content.genresList }.map { it.id }.toSet()
+        if (genreIds.isEmpty()) {
+            return emptyList()
+        }
+        val pageable = PageRequest.of(0, 15)
+        return contentMapper.contentsListToMiniContentResponsesList(
+            contentRepository.findRecommendedContent(watchedIds, genreIds, pageable)
+        )
+    }
+    override fun findByGenre(genreId: Long, page: Int, size: Int): Page<MiniContentResponse> {
+        genreRepository.findById(genreId).orElseThrow {
+            NoExists("$genreId", "Genre")
+        }
+        val pageable = PageRequest.of(page, size)
+        return contentRepository.findByGenresListId(genreId, pageable)
+            .map { contentMapper.contentToMiniContentResponse(it) }
     }
     @Transactional
     override fun insert(contentRequest: ContentRequest): ContentResponse {

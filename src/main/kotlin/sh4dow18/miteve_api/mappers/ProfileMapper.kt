@@ -18,7 +18,14 @@ import sh4dow18.miteve_api.entities.User
 interface ProfileMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "continueWatchingList", expression = EMPTY_LIST)
+    @Mapping(target = "historyList", expression = EMPTY_LIST)
+    @Mapping(target = "favoritesList", expression = EMPTY_SET)
     @Mapping(target = "user", expression = "java(user)")
+    @Mapping(target = "autoSkip", constant = "false")
+    @Mapping(target = "lowQuality", constant = "false")
+    @Mapping(target = "disableSubtitles", constant = "false")
+    @Mapping(target = "adultProfile", constant = "false")
+    @Mapping(target = "allowPersonalizedRecommendations", constant = "true")
     fun profileRequestToProfile(
         profileRequest: ProfileRequest,
         user: User

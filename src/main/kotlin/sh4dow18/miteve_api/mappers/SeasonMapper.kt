@@ -18,6 +18,8 @@ interface SeasonMapper {
     @Mapping(target = "content", expression = "java(content)")
     // Set each list as empty
     @Mapping(target = "episodesList", expression = EMPTY_LIST)
+    @Mapping(target = "comingSoon", source = "seasonRequest.comingSoon")
+    @Mapping(target = "seasonNumber", source = "seasonRequest.seasonNumber")
     fun seasonRequestToSeason(
         id: String,
         seasonRequest: SeasonRequest,
