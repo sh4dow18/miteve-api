@@ -1,5 +1,6 @@
 package sh4dow18.miteve_api.controllers
 
+import tools.jackson.databind.JsonNode
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
@@ -10,13 +11,17 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import sh4dow18.miteve_api.dtos.episode.FullEpisodeRequest
+import sh4dow18.miteve_api.services.batch_update.BatchUpdateEpisodesService
 import sh4dow18.miteve_api.services.episode.EpisodeService
 
 // Container Rest Controller
 @RestController
 @RequestMapping("\${endpoint.episodes}")
 @CrossOrigin(origins = ["http://localhost:3000", "https://miteve.vercel.app"])
-class EpisodeController(private val episodeService: EpisodeService) {
+class EpisodeController(
+    private val episodeService: EpisodeService,
+    private val batchUpdateEpisodesService: BatchUpdateEpisodesService
+) {
     @GetMapping("next/{id}")
     @ResponseBody
     fun findNextById(@PathVariable id: String) = episodeService.findNextById(id)
@@ -26,4 +31,7 @@ class EpisodeController(private val episodeService: EpisodeService) {
     @PutMapping("{id}", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun update(@PathVariable id: String, @RequestBody fullEpisodeRequest: FullEpisodeRequest) = episodeService.update(id, fullEpisodeRequest)
+    @PutMapping("batch-update", consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun batchUpdate(@RequestBody node: JsonNode) = batchUpdateEpisodesService.update(node)
 }
