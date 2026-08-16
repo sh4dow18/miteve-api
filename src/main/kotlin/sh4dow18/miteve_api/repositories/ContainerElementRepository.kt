@@ -12,4 +12,7 @@ interface ContainerElementRepository: JpaRepository<ContainerElement, Long> {
     @Modifying
     @Query("UPDATE ContainerElement ce SET ce.position = ce.position + 1 WHERE ce.container = :container AND ce.position >= :position")
     fun shiftPositionFrom(container: Container, position: Short)
+
+    @Query("SELECT ce FROM ContainerElement ce WHERE ce.container = :container ORDER BY ce.position ASC")
+    fun findByContainerOrderByPositionAsc(container: Container): List<ContainerElement>
 }

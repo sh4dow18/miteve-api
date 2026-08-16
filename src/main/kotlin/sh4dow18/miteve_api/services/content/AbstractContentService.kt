@@ -20,6 +20,7 @@ import sh4dow18.miteve_api.mappers.ContainerElementMapper
 import sh4dow18.miteve_api.mappers.ContentMapper
 import sh4dow18.miteve_api.mappers.EpisodeMapper
 import sh4dow18.miteve_api.mappers.SeasonMapper
+import sh4dow18.miteve_api.entities.Container
 import sh4dow18.miteve_api.repositories.*
 import java.text.Normalizer
 
@@ -146,6 +147,14 @@ class AbstractContentService(
         return contentRepository.findByGenresListId(genreId, pageable)
             .map { contentMapper.contentToMiniContentResponse(it) }
     }
+    private fun renumberContainerPositions(container: Container) {
+        val elements = containerElementRepository.findByContainerOrderByPositionAsc(container)
+        elements.forEachIndexed { index, element ->
+            element.position = (index + 1).toShort()
+        }
+        containerElementRepository.saveAll(elements)
+    }
+
     @Transactional
     override fun insert(contentRequest: ContentRequest): ContentResponse {
         val slug = toSlug(contentRequest.title)
@@ -167,6 +176,7 @@ class AbstractContentService(
         val newContent = contentRepository.save(contentMapper.contentRequestToContent(slug, contentRequest, genresList.toSet(), type))
         val newContainerElement = containerElementMapper.contentElementRequestToContainerElement(contentRequest.containerPosition, newContent, container)
         containerElementRepository.save(newContainerElement)
+        renumberContainerPositions(container)
         return contentMapper.contentToContentResponse(newContent)
     }
     @Transactional
@@ -222,6 +232,8 @@ class AbstractContentService(
         }
         content.createdDate = existingContentData.createdDate
         content.tmdbId = existingContentData.tmdbId
-        return contentMapper.contentToContentResponse(contentRepository.save(content))
+        val savedContent = contentRepository.save(content)
+        renumberContainerPositions(container)
+        return contentMapper.contentToContentResponse(savedContent)
     }
 }
