@@ -23,7 +23,10 @@ import sh4dow18.miteve_api.services.content.ContentService
 class ContentController(private val contentService: ContentService) {
     @GetMapping
     @ResponseBody
-    fun findAll() = contentService.findAll()
+    fun findAll(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ) = contentService.findAll(page, size)
     @GetMapping("{id}")
     @ResponseBody
     fun findById(@PathVariable id: String) = contentService.findById(id)
@@ -38,6 +41,13 @@ class ContentController(private val contentService: ContentService) {
     fun findSeasonsById(@PathVariable id: String) = contentService.findSeasonsById(id)
     @GetMapping("like/{title}")
     fun findByTitle(@PathVariable title: String) = contentService.findByTitle(title)
+    @GetMapping("search")
+    @ResponseBody
+    fun searchByTitle(
+        @RequestParam title: String,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ) = contentService.searchByTitle(title, page, size)
     @GetMapping("genre/{genreId}")
     @ResponseBody
     fun findByGenre(

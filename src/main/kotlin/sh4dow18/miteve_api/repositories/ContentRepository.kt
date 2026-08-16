@@ -18,6 +18,7 @@ interface ContentRepository: JpaRepository<Content, String> {
     """)
     fun findComingSoon(): List<Content>
     fun findByTitleContainingIgnoreCase(@Param("title") title: String): List<Content>
+    fun findByTitleContainingIgnoreCase(@Param("title") title: String, pageable: Pageable): Page<Content>
     fun findByGenresListId(@Param("genreId") genreId: Long, pageable: Pageable): Page<Content>
     @Query(
         value = """

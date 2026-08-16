@@ -3,6 +3,7 @@ package sh4dow18.miteve_api.services.content
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sh4dow18.miteve_api.dtos.content.ContentRequest
@@ -62,8 +63,9 @@ class AbstractContentService(
             .replace(Regex("-+"), "-")
             .trim('-')
     }
-    override fun findAll(): List<ShortContentResponse> {
-        return contentMapper.contentsListToShortContentResponsesList(contentRepository.findAll())
+    override fun findAll(page: Int, size: Int): Page<ShortContentResponse> {
+        val pageable = PageRequest.of(page, size, Sort.by("title"))
+        return contentRepository.findAll(pageable).map { contentMapper.contentToShortContentResponse(it) }
     }
     override fun findById(id: String): ContentResponse {
         val content = contentRepository.findById(id).orElseThrow {
@@ -85,6 +87,11 @@ class AbstractContentService(
     }
     override fun findByTitle(title: String): List<MiniContentResponse> {
         return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findByTitleContainingIgnoreCase(title))
+    }
+    override fun searchByTitle(title: String, page: Int, size: Int): Page<ShortContentResponse> {
+        val pageable = PageRequest.of(page, size, Sort.by("title"))
+        return contentRepository.findByTitleContainingIgnoreCase(title, pageable)
+            .map { contentMapper.contentToShortContentResponse(it) }
     }
     override fun findSimilarContent(id: String, page: Int, size: Int): Page<MiniContentResponse> {
         val content = contentRepository.findById(id).orElseThrow {
