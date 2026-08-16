@@ -18,6 +18,7 @@ interface ContainerRepository: JpaRepository<Container, Long> {
         AND e.content IS NOT NULL
         AND e.content.type.id <> :typeId
     )
+    ORDER BY c.name ASC
     """)
     fun findContainersWithOnlyThisType(@Param("typeId") typeId: Long): List<Container>
 }

@@ -1,6 +1,7 @@
 package sh4dow18.miteve_api.services.genre
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sh4dow18.miteve_api.dtos.genre.GenreRequest
@@ -19,7 +20,7 @@ class AbstractGenreService(
     val genreMapper: GenreMapper
 ): GenreService {
     override fun findAll(): List<GenreResponse> {
-        return genreMapper.genresListToGenreResponsesList(genreRepository.findAll())
+        return genreMapper.genresListToGenreResponsesList(genreRepository.findAll(Sort.by("name")))
     }
     @Transactional
     override fun insert(genreRequest: GenreRequest): GenreResponse {

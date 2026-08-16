@@ -1,6 +1,7 @@
 package sh4dow18.miteve_api.services.container
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sh4dow18.miteve_api.dtos.container.ContainerRequest
@@ -20,7 +21,7 @@ class AbstractContainerService(
     val containerMapper: ContainerMapper,
 ): ContainerService {
     override fun findAll(): List<MiniContainerResponse> {
-        return containerMapper.containersListToMiniContainerResponsesList(containerRepository.findAll())
+        return containerMapper.containersListToMiniContainerResponsesList(containerRepository.findAll(Sort.by("name")))
     }
     override fun findByContentType(typeId: Long): List<ContainerResponse> {
         return containerMapper.containersListToContainerResponsesList(containerRepository.findContainersWithOnlyThisType(typeId))
