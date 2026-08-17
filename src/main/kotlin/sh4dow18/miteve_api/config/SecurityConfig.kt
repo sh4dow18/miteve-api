@@ -108,7 +108,7 @@ class JwtSecurityConfiguration(private val authenticationConfiguration: Authenti
         val config = CorsConfiguration()
         config.allowedOrigins = listOf("http://localhost:3000", "http://localhost:3001", "http://localhost:${port}", ipDomain)
         config.allowedHeaders = listOf("*")
-        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         config.exposedHeaders = listOf("Authorization")
         source.registerCorsConfiguration("/**", config)
         return source

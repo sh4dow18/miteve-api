@@ -55,6 +55,7 @@ class AbstractSuggestedContentReportService(
                 reportedAt = ZonedDateTime.now(),
                 user = user,
                 status = status,
+                tmdbId = request.tmdbId,
                 rejectionReason = null
             )
         )
