@@ -11,6 +11,7 @@ import sh4dow18.miteve_api.errors.NoExists
 import sh4dow18.miteve_api.mappers.SuggestedContentReportMapper
 import sh4dow18.miteve_api.repositories.SuggestedContentReportRepository
 import sh4dow18.miteve_api.repositories.SuggestedContentReportStatusRepository
+import sh4dow18.miteve_api.repositories.ContentTypeRepository
 import sh4dow18.miteve_api.repositories.UserRepository
 import java.time.ZonedDateTime
 
@@ -18,6 +19,7 @@ import java.time.ZonedDateTime
 class AbstractSuggestedContentReportService(
     @Autowired val reportRepository: SuggestedContentReportRepository,
     @Autowired val statusRepository: SuggestedContentReportStatusRepository,
+    @Autowired val contentTypeRepository: ContentTypeRepository,
     @Autowired val userRepository: UserRepository,
     @Autowired val mapper: SuggestedContentReportMapper
 ) : SuggestedContentReportService {
@@ -48,6 +50,9 @@ class AbstractSuggestedContentReportService(
         val status = statusRepository.findByName("Solicitado").orElseThrow {
             NoExists("Solicitado", "SuggestedContentReportStatus")
         }
+        val contentType = contentTypeRepository.findById(request.contentTypeId).orElseThrow {
+            NoExists("${request.contentTypeId}", "ContentType")
+        }
         val report = reportRepository.save(
             SuggestedContentReport(
                 id = 0,
@@ -56,6 +61,7 @@ class AbstractSuggestedContentReportService(
                 user = user,
                 status = status,
                 tmdbId = request.tmdbId,
+                contentType = contentType,
                 rejectionReason = null
             )
         )
@@ -73,5 +79,9 @@ class AbstractSuggestedContentReportService(
         report.status = status
         report.rejectionReason = if (status.name == "Reprobado") request.rejectionReason else null
         return mapper.suggestedContentReportToResponse(reportRepository.save(report))
+    }
+
+    override fun existsByTmdbIdAndContentTypeId(tmdbId: Long, contentTypeId: Long): Boolean {
+        return reportRepository.existsByTmdbIdAndContentTypeId(tmdbId, contentTypeId)
     }
 }

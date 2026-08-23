@@ -11,5 +11,6 @@ data class SuggestedContentReportResponse(
     val statusId: Long,
     val statusName: String,
     val tmdbId: Long,
+    val contentTypeName: String,
     val rejectionReason: String?
 )

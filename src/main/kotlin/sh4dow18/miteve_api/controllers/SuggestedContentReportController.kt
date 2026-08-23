@@ -27,6 +27,9 @@ class SuggestedContentReportController(private val service: SuggestedContentRepo
     @GetMapping("user/{userId}", produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun findAllByUserId(@PathVariable userId: Long) = service.findAllByUserId(userId)
+    @GetMapping("exists/{tmdbId}/{contentTypeId}", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun existsByTmdbIdAndContentTypeId(@PathVariable tmdbId: Long, @PathVariable contentTypeId: Long) = service.existsByTmdbIdAndContentTypeId(tmdbId, contentTypeId)
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun insert(@RequestBody request: SuggestedContentReportRequest) = service.insert(request)

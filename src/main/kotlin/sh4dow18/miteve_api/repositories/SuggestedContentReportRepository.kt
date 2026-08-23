@@ -8,4 +8,5 @@ import sh4dow18.miteve_api.entities.SuggestedContentReport
 interface SuggestedContentReportRepository : JpaRepository<SuggestedContentReport, Long> {
     fun findAllByOrderByReportedAtDesc(): List<SuggestedContentReport>
     fun findAllByUserId(userId: Long): List<SuggestedContentReport>
+    fun existsByTmdbIdAndContentTypeId(tmdbId: Long, contentTypeId: Long): Boolean
 }

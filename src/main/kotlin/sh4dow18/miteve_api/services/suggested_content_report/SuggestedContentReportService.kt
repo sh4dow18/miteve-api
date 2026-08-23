@@ -10,4 +10,5 @@ interface SuggestedContentReportService {
     fun findAllByUserId(userId: Long): List<SuggestedContentReportResponse>
     fun insert(request: SuggestedContentReportRequest): SuggestedContentReportResponse
     fun updateStatus(id: Long, request: UpdateSuggestedContentReportStatusRequest): SuggestedContentReportResponse
+    fun existsByTmdbIdAndContentTypeId(tmdbId: Long, contentTypeId: Long): Boolean
 }

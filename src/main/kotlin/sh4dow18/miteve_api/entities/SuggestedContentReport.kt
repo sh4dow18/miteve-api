@@ -26,6 +26,9 @@ class SuggestedContentReport(
     @JoinColumn(name = "status_id", nullable = false, referencedColumnName = "id")
     var status: SuggestedContentReportStatus,
     var tmdbId: Long,
+    @ManyToOne
+    @JoinColumn(name = "content_type_id", nullable = false, referencedColumnName = "id", columnDefinition = "BIGINT DEFAULT 1")
+    var contentType: ContentType,
     @Column(length = 1000, nullable = true)
     var rejectionReason: String? = null
 )

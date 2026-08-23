@@ -12,6 +12,7 @@ interface SuggestedContentReportMapper {
     @Mapping(target = "userEmail", expression = "java(report.getUser().getEmail())")
     @Mapping(target = "statusId", expression = "java(report.getStatus().getId())")
     @Mapping(target = "statusName", expression = "java(report.getStatus().getName())")
+    @Mapping(target = "contentTypeName", expression = "java(report.getContentType().getName())")
     fun suggestedContentReportToResponse(report: SuggestedContentReport): SuggestedContentReportResponse
     fun suggestedContentReportsListToResponsesList(list: List<SuggestedContentReport>): List<SuggestedContentReportResponse>
 }

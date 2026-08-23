@@ -17,4 +17,6 @@ data class ContentType(
     var name: String,
     @OneToMany(mappedBy = "type", targetEntity = Content::class)
     var contentsList: List<Content>,
+    @OneToMany(mappedBy = "contentType", targetEntity = SuggestedContentReport::class)
+    var suggestedContentReportsList: List<SuggestedContentReport>,
 )
