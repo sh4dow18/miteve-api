@@ -1,6 +1,9 @@
 package sh4dow18.miteve_api.services.suggested_content_report
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import sh4dow18.miteve_api.dtos.suggested_content_report.SuggestedContentReportRequest
@@ -24,8 +27,16 @@ class AbstractSuggestedContentReportService(
     @Autowired val mapper: SuggestedContentReportMapper
 ) : SuggestedContentReportService {
 
-    override fun findAll(): List<SuggestedContentReportResponse> {
-        return mapper.suggestedContentReportsListToResponsesList(reportRepository.findAllByOrderByReportedAtDesc())
+    private val rejectedNames = listOf("Reprobado", "Rechazado", "Rechazada")
+
+    override fun findAll(page: Int, size: Int): Page<SuggestedContentReportResponse> {
+        val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "reportedAt"))
+        return reportRepository.findActiveReports(rejectedNames, pageable).map { mapper.suggestedContentReportToResponse(it) }
+    }
+
+    override fun findRejected(page: Int, size: Int): Page<SuggestedContentReportResponse> {
+        val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "reportedAt"))
+        return reportRepository.findByStatusNameIn(rejectedNames, pageable).map { mapper.suggestedContentReportToResponse(it) }
     }
 
     override fun findById(id: Long): SuggestedContentReportResponse {
@@ -77,7 +88,7 @@ class AbstractSuggestedContentReportService(
             NoExists("${request.statusId}", "SuggestedContentReportStatus")
         }
         report.status = status
-        report.rejectionReason = if (status.name == "Reprobado") request.rejectionReason else null
+        report.rejectionReason = if (status.name in rejectedNames) request.rejectionReason else null
         return mapper.suggestedContentReportToResponse(reportRepository.save(report))
     }
 

@@ -14,6 +14,7 @@ import sh4dow18.miteve_api.dtos.season.SeasonRequest
 interface ContentService {
     fun findAll(page: Int, size: Int): Page<ShortContentResponse>
     fun findById(id: String): ContentResponse
+    fun findByTmdbId(tmdbId: Long): ContentResponse
     fun findRecentContent(): List<MiniContentResponse>
     fun findComingSoon(): List<MiniContentResponse>
     fun findSeasonsById(id: String): List<MiniSeasonResponse>

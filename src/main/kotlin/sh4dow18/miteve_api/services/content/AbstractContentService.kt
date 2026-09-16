@@ -74,6 +74,12 @@ class AbstractContentService(
         }
         return contentMapper.contentToContentResponse(content)
     }
+    override fun findByTmdbId(tmdbId: Long): ContentResponse {
+        val content = contentRepository.findByTmdbId(tmdbId).orElseThrow {
+            NoExists("$tmdbId", "Content by tmdbId")
+        }
+        return contentMapper.contentToContentResponse(content)
+    }
     override fun findRecentContent(): List<MiniContentResponse> {
         return contentMapper.contentsListToMiniContentResponsesList(contentRepository.findTop10ByComingSoonFalseOrderByCreatedDateDesc())
     }

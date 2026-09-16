@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import sh4dow18.miteve_api.dtos.suggested_content_report.SuggestedContentReportRequest
@@ -20,7 +21,16 @@ import sh4dow18.miteve_api.services.suggested_content_report.SuggestedContentRep
 class SuggestedContentReportController(private val service: SuggestedContentReportService) {
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
-    fun findAll() = service.findAll()
+    fun findAll(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ) = service.findAll(page, size)
+    @GetMapping("rejected", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @ResponseBody
+    fun findRejected(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ) = service.findRejected(page, size)
     @GetMapping("{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
     @ResponseBody
     fun findById(@PathVariable id: Long) = service.findById(id)

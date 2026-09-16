@@ -10,6 +10,8 @@ import sh4dow18.miteve_api.entities.Content
 
 @Repository
 interface ContentRepository: JpaRepository<Content, String> {
+    fun existsByTmdbId(tmdbId: Long): Boolean
+    fun findByTmdbId(tmdbId: Long): java.util.Optional<Content>
     fun findTop10ByComingSoonFalseOrderByCreatedDateDesc(): List<Content>
     @Query("""
         SELECT DISTINCT c FROM Content c LEFT JOIN c.seasonsList s

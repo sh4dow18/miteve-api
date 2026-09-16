@@ -30,6 +30,9 @@ class ContentController(private val contentService: ContentService) {
     @GetMapping("{id}")
     @ResponseBody
     fun findById(@PathVariable id: String) = contentService.findById(id)
+    @GetMapping("tmdb/{tmdbId}")
+    @ResponseBody
+    fun findByTmdbId(@PathVariable tmdbId: Long) = contentService.findByTmdbId(tmdbId)
     @GetMapping("recent")
     @ResponseBody
     fun findRecentContent() = contentService.findRecentContent()
