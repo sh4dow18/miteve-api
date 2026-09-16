@@ -178,9 +178,14 @@ class AbstractContentService(
         val type = contentTypeRepository.findById(contentRequest.typeId).orElseThrow {
             NoExists("${contentRequest.typeId}", "Content Type")
         }
-        containerElementRepository.shiftPositionFrom(container, contentRequest.containerPosition)
+        // Normalizar posición 1-based: 0 o negativo => 1, >size+1 => size+1
+        val existingSize = containerElementRepository.findByContainerOrderByPositionAsc(container).size
+        var normalizedPos = contentRequest.containerPosition
+        if (normalizedPos <= 0) normalizedPos = 1
+        if (normalizedPos > existingSize + 1) normalizedPos = (existingSize + 1).toShort()
+        containerElementRepository.shiftPositionFrom(container, normalizedPos)
         val newContent = contentRepository.save(contentMapper.contentRequestToContent(slug, contentRequest, genresList.toSet(), type))
-        val newContainerElement = containerElementMapper.contentElementRequestToContainerElement(contentRequest.containerPosition, newContent, container)
+        val newContainerElement = containerElementMapper.contentElementRequestToContainerElement(normalizedPos, newContent, container)
         containerElementRepository.save(newContainerElement)
         renumberContainerPositions(container)
         return contentMapper.contentToContentResponse(newContent)
@@ -223,23 +228,86 @@ class AbstractContentService(
             val missingIds = contentRequest.genresList - genresList.map { it.id }.toSet()
             throw NoExists(missingIds.toList().toString(), "Genres")
         }
-        val container = containerRepository.findById(contentRequest.containerId).orElseThrow {
+        val newContainer = containerRepository.findById(contentRequest.containerId).orElseThrow {
             NoExists("${contentRequest.containerId}", "Container")
         }
         val type = contentTypeRepository.findById(contentRequest.typeId).orElseThrow {
             NoExists("${contentRequest.typeId}", "Content Type")
         }
-        containerElementRepository.shiftPositionFrom(container, contentRequest.containerPosition)
+
+        val oldElement = existingContentData.containerElement
+        val oldContainer = oldElement?.container
+        var requestedPos = contentRequest.containerPosition
+        if (requestedPos <= 0) requestedPos = 1
+
         val content = contentMapper.contentRequestToContent(id, contentRequest, genresList.toSet(), type)
-        if (existingContentData.containerElement != null) {
-            content.containerElement = existingContentData.containerElement
-            content.containerElement!!.position = contentRequest.containerPosition
-            content.containerElement!!.container = container
+
+        if (oldElement != null) {
+            // Caso 1: mismo contenedor -> reordenar sin shift incremental (evita bug de duplicados al mover hacia atrás)
+            if (oldContainer != null && oldContainer.id == newContainer.id) {
+                val elements = containerElementRepository.findByContainerOrderByPositionAsc(newContainer).toMutableList()
+                // Remover el elemento que se mueve de la lista
+                elements.removeIf { it.id == oldElement.id }
+                // Clampear posición 1..size+1
+                val clampedPos = when {
+                    requestedPos > elements.size + 1 -> (elements.size + 1).toShort()
+                    else -> requestedPos
+                }
+                val insertIndex = (clampedPos - 1).coerceIn(0, elements.size)
+                oldElement.container = newContainer
+                oldElement.position = clampedPos
+                elements.add(insertIndex, oldElement)
+                // Reasignar posiciones secuenciales 1..N para reflejar el orden visual
+                elements.forEachIndexed { idx, el -> el.position = (idx + 1).toShort() }
+                containerElementRepository.saveAll(elements)
+                content.containerElement = oldElement
+            } else {
+                // Caso 2: cambio de contenedor -> renumerar viejo y nuevo
+                if (oldContainer != null) {
+                    val oldElements = containerElementRepository.findByContainerOrderByPositionAsc(oldContainer)
+                        .filter { it.id != oldElement.id }
+                    oldElements.forEachIndexed { idx, el -> el.position = (idx + 1).toShort() }
+                    containerElementRepository.saveAll(oldElements)
+                }
+                val newElements = containerElementRepository.findByContainerOrderByPositionAsc(newContainer).toMutableList()
+                val clampedPos = when {
+                    requestedPos > newElements.size + 1 -> (newElements.size + 1).toShort()
+                    else -> requestedPos
+                }
+                val insertIndex = (clampedPos - 1).coerceIn(0, newElements.size)
+                oldElement.container = newContainer
+                oldElement.position = clampedPos
+                newElements.add(insertIndex, oldElement)
+                newElements.forEachIndexed { idx, el -> el.position = (idx + 1).toShort() }
+                containerElementRepository.saveAll(newElements)
+                content.containerElement = oldElement
+            }
+        } else {
+            // No tenía contenedor antes -> crear como insert
+            val newElements = containerElementRepository.findByContainerOrderByPositionAsc(newContainer)
+            val clampedPos = when {
+                requestedPos > newElements.size + 1 -> (newElements.size + 1).toShort()
+                else -> requestedPos
+            }
+            containerElementRepository.shiftPositionFrom(newContainer, clampedPos)
+            // Guardar contenido primero para tener el ID
+            content.createdDate = existingContentData.createdDate
+            content.tmdbId = existingContentData.tmdbId
+            val savedContent = contentRepository.save(content)
+            val newElem = containerElementMapper.contentElementRequestToContainerElement(clampedPos, savedContent, newContainer)
+            containerElementRepository.save(newElem)
+            renumberContainerPositions(newContainer)
+            return contentMapper.contentToContentResponse(savedContent)
         }
+
         content.createdDate = existingContentData.createdDate
         content.tmdbId = existingContentData.tmdbId
         val savedContent = contentRepository.save(content)
-        renumberContainerPositions(container)
+        // Asegurar renumerado final por si queda algún hueco (idempotente)
+        renumberContainerPositions(newContainer)
+        if (oldContainer != null && oldContainer.id != newContainer.id) {
+            renumberContainerPositions(oldContainer)
+        }
         return contentMapper.contentToContentResponse(savedContent)
     }
 }
