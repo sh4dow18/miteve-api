@@ -19,6 +19,9 @@ class ErrorHandler: ResponseEntityExceptionHandler() {
     // Error handler when some elements don't exist and needs to exist
     @ExceptionHandler(NoExists::class)
     fun noExists(exception: Exception) = getError(exception, HttpStatus.NOT_FOUND)
+    // Error handler when an upstream provider (e.g. lamovie.org) is down or paused
+    @ExceptionHandler(ServiceUnavailable::class)
+    fun serviceUnavailable(exception: Exception) = getError(exception, HttpStatus.SERVICE_UNAVAILABLE)
     // Default error handler for each exception that does not have a specific error handler
     @ExceptionHandler(Exception::class, RuntimeException::class)
     fun default(exception: java.lang.Exception, ) = getError(exception, HttpStatus.INTERNAL_SERVER_ERROR)

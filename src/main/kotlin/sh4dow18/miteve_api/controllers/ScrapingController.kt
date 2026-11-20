@@ -174,8 +174,12 @@ class ScrapingController(
     fun downloadMediafireToServerPost(@RequestParam url: String) = scrapeService.downloadMediafireToServer(url)
 
     private fun proxyStream(directUrl: String, filename: String): ResponseEntity<StreamingResponseBody> {
+        val safeUrl = directUrl.trim().replace(Regex("[\\r\\n\\t]"), "").replace(" ", "%20").trim()
+        val safeUri = try { URI(safeUrl) } catch (e: Exception) {
+            throw sh4dow18.miteve_api.errors.BadRequest("URL de descarga inválida '$safeUrl': ${e.message}")
+        }
         val client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).connectTimeout(Duration.ofSeconds(20)).build()
-        val headReq = HttpRequest.newBuilder(URI(directUrl)).method("HEAD", HttpRequest.BodyPublishers.noBody())
+        val headReq = HttpRequest.newBuilder(safeUri).method("HEAD", HttpRequest.BodyPublishers.noBody())
             .header("User-Agent", "Mozilla/5.0").timeout(Duration.ofSeconds(15)).build()
         var contentType: String? = null
         var contentLength: Long? = null
@@ -185,7 +189,7 @@ class ScrapingController(
             contentLength = headRes.headers().firstValue("content-length").orElse(null)?.toLongOrNull()
         } catch (_: Exception) {}
         val stream = StreamingResponseBody { out ->
-            val getReq = HttpRequest.newBuilder(URI(directUrl)).GET()
+            val getReq = HttpRequest.newBuilder(safeUri).GET()
                 .header("User-Agent", "Mozilla/5.0").timeout(Duration.ofSeconds(120)).build()
             val res = client.send(getReq, HttpResponse.BodyHandlers.ofInputStream())
             res.body().transferTo(out)
