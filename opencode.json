@@ -8,7 +8,7 @@
       },
       "postgres": {
         "type": "local",
-        "command": ["sh", "-c", "npx -y @modelcontextprotocol/server-postgres \"$DATABASE_URL\""],
+        "command": ["npx", "-y", "@modelcontextprotocol/server-postgres", "{env:DATABASE_URL}"],
         "environment": {
           "DATABASE_URL": "{env:DATABASE_URL}"
         }
@@ -19,6 +19,10 @@
         "environment": {
           "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_PERSONAL_ACCESS_TOKEN}"
         }
+      },
+      "fetch": {
+        "type": "local",
+        "command": ["npx", "-y", "@modelcontextprotocol/server-fetch"]
       }
     }
   }
