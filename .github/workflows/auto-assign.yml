@@ -1,0 +1,104 @@
+name: Auto Assign
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign reviewers and assignee
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const team = ['sh4dow18'];
+            const author = context.payload.pull_request.user.login;
+            const prNumber = context.payload.pull_request.number;
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            const existing = [
+              ...(pr.requested_reviewers || []).map(u => u.login.toLowerCase()),
+              ...(pr.requested_teams || []).map(t => t.name.toLowerCase())
+            ];
+            const reviewers = team.filter(m => m.toLowerCase() !== author.toLowerCase() && !existing.includes(m.toLowerCase()));
+
+            if (reviewers.length > 0) {
+              try {
+                await github.rest.pulls.requestReviewers({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: prNumber,
+                  reviewers,
+                });
+                core.info(`Reviewers solicitados: ${reviewers.join(', ')}`);
+              } catch (error) {
+                core.warning(`No se pudieron solicitar reviewers: ${error.message}`);
+              }
+            } else {
+              core.info('No hay nuevos reviewers para solicitar');
+            }
+
+            try {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                assignees: [author],
+              });
+              core.info(`Assignee: ${author}`);
+            } catch (error) {
+              core.warning(`No se pudo asignar assignee: ${error.message}`);
+            }
+
+            // Copiar labels del issue asociado a la rama al PR
+            try {
+              const branch = context.payload.pull_request.head.ref;
+              core.info(`Branch: ${branch}`);
+              const branchMatch = branch.match(/^(Feature|Fix|Refactor|Docs)\/(\d+)-/);
+              if (!branchMatch) {
+                core.info(`Branch ${branch} no contiene issue number con formato Tipo/123-desc, se omite copia de labels`);
+              } else {
+                const issueNumber = parseInt(branchMatch[2], 10);
+                core.info(`Issue asociado: #${issueNumber}`);
+                const { data: issue } = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                });
+                const labels = (issue.labels || []).map(l => typeof l === 'string' ? l : l.name).filter(Boolean);
+                if (labels.length === 0) {
+                  core.info(`Issue #${issueNumber} sin labels, nada que copiar`);
+                } else {
+                  core.info(`Labels del issue #${issueNumber}: ${labels.join(', ')}`);
+                  const { data: prLabelsData } = await github.rest.issues.listLabelsOnIssue({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                  });
+                  const existingLabels = (prLabelsData || []).map(l => l.name.toLowerCase());
+                  const toAdd = labels.filter(l => !existingLabels.includes(l.toLowerCase()));
+                  if (toAdd.length === 0) {
+                    core.info('PR ya tiene todos los labels del issue');
+                  } else {
+                    await github.rest.issues.addLabels({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: prNumber,
+                      labels: toAdd,
+                    });
+                    core.info(`Labels copiados al PR #${prNumber}: ${toAdd.join(', ')}`);
+                  }
+                }
+              }
+            } catch (error) {
+              core.warning(`No se pudieron copiar labels del issue: ${error.message}`);
+            }

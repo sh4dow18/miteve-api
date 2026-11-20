@@ -1,0 +1,42 @@
+name: Branch Name Lint
+
+on:
+  create:
+  push:
+  pull_request:
+    branches: [develop, main, "release/*"]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.head_ref }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+          fi
+          if [ -z "$BRANCH" ]; then
+            BRANCH="${GITHUB_REF#refs/heads/}"
+          fi
+          echo "Branch: $BRANCH"
+          if echo "$GITHUB_REF" | grep -q "^refs/tags/"; then
+            echo "Tag push, skipping"
+            exit 0
+          fi
+          case "$BRANCH" in
+            main|develop|release/*|hotfix/*)
+              echo "✅ Exempt branch: $BRANCH"
+              exit 0
+              ;;
+          esac
+          if ! echo "$BRANCH" | grep -qE '^(Feature|Fix|Refactor|Docs)/[0-9]+-[a-z0-9-]+$'; then
+            echo "❌ Nombre de rama inválido: $BRANCH"
+            echo "Formato: Tipo/<issue>-descripcion-corta"
+            echo "Tipos: Feature | Fix | Refactor | Docs"
+            echo "Ejemplo: Feature/123-supplier-docs"
+            echo "Ver: documentation/contributing/05-branching.md"
+            exit 1
+          fi
+          echo "✅ Branch name valid"

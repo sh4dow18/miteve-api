@@ -1,0 +1,90 @@
+name: "✨ Solicitar Nueva Funcionalidad"
+description: "Solicitar una nueva funcionalidad para MiTeVe-API"
+labels: ["Solicitud"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por proponer una nueva funcionalidad.
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: "Historia de Usuario"
+      description: "Formato: Como [rol], Quiero [funcionalidad], Para [beneficio]"
+      placeholder: |
+        **Como** usuario con perfil
+        **Quiero** ver recomendaciones de contenido
+        **Para** descubrir qué ver después
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Descripción"
+      description: "Descripción detallada de la funcionalidad"
+    validations:
+      required: true
+
+  - type: textarea
+    id: criteria
+    attributes:
+      label: "Criterios de Aceptación"
+      description: "Checklist de lo que debe cumplir"
+      placeholder: |
+        - [ ] Criterio 1
+        - [ ] Criterio 2
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: objetivo
+    attributes:
+      label: "Objetivo"
+      description: "Área(s) / objetivo(s) donde va la funcionalidad. Selecciona uno o varios."
+      options:
+        - label: "Auth"
+        - label: "Contents"
+        - label: "Seasons"
+        - label: "Episodes"
+        - label: "Containers"
+        - label: "Users"
+        - label: "Profiles"
+        - label: "Scrape"
+        - label: "Ffmpeg"
+        - label: "Upload"
+        - label: "DB"
+        - label: "General"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reportado_por
+    attributes:
+      label: "Reportado por"
+      description: "¿Quién reporta el issue?"
+      options:
+        - MiTeVe Team
+        - QA
+        - Usuario
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: "Mockups"
+      description: "Mockups, diseños o snippet OpenAPI del endpoint propuesto (opcional)"
+      placeholder: |
+        ```yaml
+        /new-api/contents/recommendations/{profileId}:
+          get:
+            summary: Contenido recomendado por perfil
+            parameters:
+              - name: profileId
+                in: path
+                required: true
+        ```
+    validations:
+      required: false

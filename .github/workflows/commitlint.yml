@@ -1,0 +1,96 @@
+name: Commitlint
+
+on:
+  pull_request:
+    branches: [develop, main, "release/*"]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commits
+        run: |
+          echo "Validando commits..."
+          BRANCH="${{ github.head_ref }}"
+          base="origin/${{ github.base_ref }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          echo "Branch: $BRANCH"
+          echo "Base: $base"
+          echo "Head: $head"
+          # Validar formato de rama (reforzando branch-lint) y correlación con commits
+          case "$BRANCH" in
+            main|develop|release/*|hotfix/*)
+              echo "Rama exenta ($BRANCH), se omite validación de formato de rama"
+              ;;
+            *)
+              if ! echo "$BRANCH" | grep -qE '^(Feature|Fix|Refactor|Docs)/[0-9]+-[a-z0-9-]+$'; then
+                echo "❌ Rama inválida: $BRANCH"
+                echo "Formato: Tipo/<issue>-descripcion"
+                echo "Tipos: Feature | Fix | Refactor | Docs"
+                echo "Ej: Fix/123-tarea"
+                exit 1
+              fi
+              ;;
+          esac
+          git log --pretty=%s "$base".."$head" | while IFS= read -r msg; do
+            if [ -z "$msg" ]; then continue; fi
+            echo "Checking: $msg"
+            # Permite commits convencionales O commits auto-generados por GitHub al hacer Squash and Merge (ej: Fix/292-assets-event-monitor-info (#296)) y Merge commits
+            if ! echo "$msg" | grep -qE '^#[0-9]+ (feat|fix|refactor|docs|style|test|chore): .+' && ! echo "$msg" | grep -qE '^(Feature|Fix|Refactor|Docs)/[0-9]+-[a-z0-9-]+ \(#[0-9]+\)$' && ! echo "$msg" | grep -qE '^Merge (branch|pull request).*'; then
+              echo "❌ Commit inválido: $msg"
+              echo "Formato: #<issue> <tipo>: <descripción> (se permiten también commits auto-generados por GitHub Squash: Tipo/123-desc (#PR) y Merge ...)"
+              echo "Ejemplo: #123 feat: add new feature"
+              exit 1
+            fi
+            # Validar que el # del commit coincida con el # de la rama (solo para commits convencionales)
+            case "$BRANCH" in
+              main|develop|release/*|hotfix/*)
+                ;;
+              *)
+                if echo "$BRANCH" | grep -qE '^(Feature|Fix|Refactor|Docs)/[0-9]+-' && echo "$msg" | grep -qE '^#[0-9]+ (feat|fix|refactor|docs|style|test|chore):'; then
+                  branch_num=$(echo "$BRANCH" | grep -oE '[0-9]+' | head -1)
+                  commit_num=$(echo "$msg" | grep -oE '^#[0-9]+' | grep -oE '[0-9]+' | head -1)
+                  if [ -n "$branch_num" ] && [ -n "$commit_num" ] && [ "$branch_num" != "$commit_num" ]; then
+                    echo "❌ Commit $msg no pertenece a rama $BRANCH (esperado #$branch_num, encontrado #$commit_num)"
+                    exit 1
+                  fi
+                fi
+                ;;
+            esac
+            # En ramas Docs/* solo se permiten commits tipo docs (solo convencionales)
+            if echo "$BRANCH" | grep -qE '^Docs/[0-9]+-' && echo "$msg" | grep -qE '^#[0-9]+ (feat|fix|refactor|docs|style|test|chore):'; then
+              if ! echo "$msg" | grep -qE '^#[0-9]+ docs: .+'; then
+                echo "❌ En rama Docs/* solo se permiten commits 'docs: ...' — commit $msg no permitido en $BRANCH"
+                exit 1
+              fi
+            fi
+          done
+          echo "✅ Todos los commits válidos"
+
+  pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title is branch name
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          BASE="${{ github.base_ref }}"
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "Branch: $BRANCH"
+          echo "Base: $BASE"
+          echo "Title: $TITLE"
+          # Excepción: PRs checkpoint develop -> main y main -> release/* no requieren título igual a rama (son sincronizaciones, no ramas de trabajo)
+          if { [ "$BRANCH" = "develop" ] && [ "$BASE" = "main" ]; } || { [ "$BRANCH" = "main" ] && echo "$BASE" | grep -q "^release/"; }; then
+            echo "✅ Checkpoint PR ($BRANCH -> $BASE), se omite validación de título"
+            exit 0
+          fi
+          if [ "$BRANCH" != "$TITLE" ]; then
+            echo "❌ PR title must be exactly the branch name"
+            echo "Expected: $BRANCH"
+            exit 1
+          fi
+          echo "✅ PR title matches branch name"

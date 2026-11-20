@@ -1,0 +1,62 @@
+name: "📋 Generar Tarea"
+description: "Tarea general o mejora para MiTeVe-API"
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Descripción"
+      description: "Descripción de la tarea"
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: "Tareas"
+      description: "Lista de subtareas"
+      placeholder: |
+        - [ ] Tarea 1
+        - [ ] Tarea 2
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: db_migration
+    attributes:
+      label: "¿Requiere migración de BD?"
+      description: "Si se marca, el PR debe llevar label db-migrations y seguir documentation/contributing/14-database-migrations.md"
+      options:
+        - label: "requires DB migration"
+
+  - type: checkboxes
+    id: objetivo
+    attributes:
+      label: "Objetivo"
+      description: "Área(s) / objetivo(s) afectado(s). Selecciona uno o varios."
+      options:
+        - label: "Auth"
+        - label: "Contents"
+        - label: "Seasons"
+        - label: "Episodes"
+        - label: "Containers"
+        - label: "Users"
+        - label: "Profiles"
+        - label: "Scrape"
+        - label: "Ffmpeg"
+        - label: "Upload"
+        - label: "DB"
+        - label: "General"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reportado_por
+    attributes:
+      label: "Reportado por"
+      description: "¿Quién reporta el issue?"
+      options:
+        - MiTeVe Team
+        - QA
+        - Usuario
+    validations:
+      required: true
